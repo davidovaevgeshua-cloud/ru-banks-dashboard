@@ -1,0 +1,64 @@
+name: Check IFRS reports
+
+on:
+  # Каждый будний день в 10:00 МСК (07:00 UTC).
+  # Российские банки публикуют МСФО обычно утром до 09:00 МСК или вечером — 10:00 МСК ловит утренние релизы.
+  schedule:
+    - cron: "0 7 * * 1-5"
+    - cron: "0 15 * * 1-5"  # 18:00 МСК — ловим вечерние публикации
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Отправить письмо даже если этот квартал уже уведомляли"
+        required: false
+        default: "false"
+      dry_run:
+        description: "Только выполнить проверку, не слать письмо"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: check-reports
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run report check
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ vars.RESEND_FROM || 'RU Banks Dashboard <onboarding@resend.dev>' }}
+          REPORTS_EMAIL_TO: ${{ vars.REPORTS_EMAIL_TO || 'e.davydova@ukmil.ru' }}
+        run: |
+          ARGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          python scripts/check_reports.py $ARGS
+
+      - name: Commit state changes
+        run: |
+          git config user.name "moex-bot"
+          git config user.email "moex-bot@users.noreply.github.com"
+          git add state/reports_last_seen.json
+          if git diff --cached --quiet; then
+            echo "No state changes to commit"
+          else
+            git commit -m "chore(reports): $(date -u +'%Y-%m-%d %H:%M UTC') update state after check"
+            git push
+          fi
