@@ -1,0 +1,176 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RU Financials — сравнение банков</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#111827;--mut:#6b7280;--bd:#e5e7eb;--acc:#0b7285}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,Segoe UI,Roboto,Arial}
+header{background:var(--card);border-bottom:1px solid var(--bd);padding:10px 16px}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+h1{font-size:15px;margin:0;font-weight:650;letter-spacing:.2px}
+.grp{display:flex;align-items:center;gap:6px}.grp>span{font-size:12px;color:var(--mut)}
+button,select{font:13px inherit;padding:4px 9px;border:1px solid var(--bd);border-radius:6px;background:#fff;cursor:pointer;color:var(--fg)}
+button:hover{border-color:#9ca3af}button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.kpi{flex:1;min-width:230px;border:1px solid var(--bd);border-left-width:4px;border-radius:8px;padding:8px 10px;background:var(--card)}
+.kpi .n{font-weight:650}.kpi .p{font-size:18px;font-weight:650}
+.kpi table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12px}
+.kpi td{padding:1px 0;color:var(--mut)}.kpi td:last-child{text-align:right;color:var(--fg);font-variant-numeric:tabular-nums}
+.up{color:#087f5b}.dn{color:#c92a2a}
+.wrap{display:flex;gap:12px;padding:12px;align-items:flex-start}
+aside{width:210px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;position:sticky;top:12px}
+aside h3{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:0 0 8px}
+label.tk{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px}
+.dot{width:10px;height:10px;border-radius:2px}
+main{flex:1;display:grid;gap:12px}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+.ph{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
+.vals{display:flex;gap:12px;font-size:12px;margin-left:auto}
+.vals b{font-variant-numeric:tabular-nums}
+.chart{height:290px}
+.note{font-size:11px;color:var(--mut);line-height:1.5}
+@media(max-width:1100px){.wrap{flex-direction:column}aside{width:100%;position:static}}
+
+
+#sect{margin:0 0 16px;background:#fff;border:1px solid #e9ecef;border-radius:8px;overflow-x:auto}
+#sect table{border-collapse:collapse;font-size:12.5px;width:100%;table-layout:fixed}
+#sect col.cnm{width:190px}
+#sect col.cy{width:auto}
+#sect th,#sect td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid #f1f3f5}
+#sect thead th{font-weight:600;color:#495057;font-size:11.5px;background:#fff}
+#sect thead th.g{text-align:center;font-size:12px;color:#212529;border-bottom:1px solid #dee2e6}
+#sect thead th.y{font-size:11px;color:#868e96;font-weight:500}
+#sect th.nm,#sect td.nm{text-align:left;position:sticky;left:0;background:#fff;z-index:2}
+#sect td.nm b{display:block;font-weight:600;color:#212529;font-size:13px;line-height:1.25}
+#sect td.nm span{color:#adb5bd;font-size:10.5px;letter-spacing:.4px}
+#sect .bl{border-left:1px solid #dee2e6}
+#sect td.sh{background:#eef6fd}
+#sect th.sh{background:#f5fafe}
+#sect tbody tr:hover td:not(.sh){background:#fbfcfd}
+#sect tbody tr:hover td.sh{background:#e4f0fb}
+#sect .pd{color:#2f9e44;font-weight:600;cursor:help}
+#sect .ftn{padding:8px 10px;font-size:11px;color:#868e96;border-top:1px solid #f1f3f5}
+</style></head><body>
+<header>
+<div class="top"><h1>RU Financials · сравнение банков</h1>
+<div class="grp"><span>Период</span><span id="presets"></span></div>
+<div class="grp"><span>Панелей</span><span id="lay"></span></div>
+<div class="grp"><label style="font-size:13px"><input type="checkbox" id="mean"> среднее по окну</label></div>
+<div class="grp"><label style="font-size:13px"><input type="checkbox" id="norm" checked> ребазировать индексы к 100</label>
+<label style="font-size:13px;margin-left:8px"><input type="checkbox" id="full"> от начала истории</label></div>
+<span style="margin-left:auto;font-size:12px;color:var(--mut)" id="upd"></span></div>
+<div class="kpis" id="kpis"></div>
+</header>
+<div id="sect"></div>
+<div class="wrap">
+<aside><h3>Компании</h3><div id="tks"></div>
+<h3 style="margin-top:16px">Методика</h3>
+<div class="note">Мультипликаторы строятся point-in-time: отчётность применяется с фактической даты публикации.<br><br>
+ROE (LTM) = прибыль за 4 квартала / средний капитал за 4 квартала.<br>
+ROE (квартал) — значение из отчёта банка.<br><br>
+ДОМ.РФ: мультипликаторы с 20.11.2025 (IPO).<br><br>Total return = цена + реинвестированные дивиденды (до налога). Индекс TR ребазируется к 100 на начало выбранного периода — сравнивайте банки на любом окне.<br><br>ВТБ: история цены до обратного сплита 5000:1 (15.07.2024) приведена к текущему номиналу. Т: сплит 1:10 (17.04.2026).<br><br>Пунктир на панели Н20.0: серый — база 8%, оранжевая лесенка — минимум для СЗКО с учётом восстанавливаемых надбавок ЦБ (8,5% в 2024 → 9,25% в 2025 → 10,0% в 2026 → 10,75% в 2027 → 12,0% с 2028).</div></aside>
+<main id="panels"></main></div>
+<script>
+(async()=>{
+  try{
+    const _r=await fetch('data/payload.json?ts='+Date.now(),{cache:'no-store'});
+    if(!_r.ok) throw new Error('fetch payload.json failed: '+_r.status);
+    var D=await _r.json();
+    const M=D.metrics,T=(D.order&&D.order.length?D.order:Object.keys(D.meta)),sel=new Set(T);
+let panels=['tr_index','pb_ltm','roe_ltm','nim_q'],nP=4,range=null;
+const mById=id=>M.find(m=>m.id===id);
+const fmt=(v,u)=>v==null?'—':u==='x'?v.toFixed(2)+'x':u==='%'?v.toFixed(1)+'%':(Math.abs(v)>=1000?v.toLocaleString('ru-RU',{maximumFractionDigits:0}):v.toFixed(1));
+document.getElementById('upd').textContent='обновлено '+D.updated;
+const K=document.getElementById('kpis');
+T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div');d.className='kpi';d.style.borderLeftColor=m.color;
+ d.innerHTML=`<div class="n">${m.name} <span style="color:var(--mut);font-weight:400">${t}</span></div>
+ <div class="p">${fmt(L.close,'abs')} ₽ <span style="font-size:13px" class="${L.chg>=0?'up':'dn'}">${L.chg>=0?'+':''}${L.chg}%</span></div>
+ <table><tr><td>Кап-ция, млрд ₽</td><td>${fmt(L.mcap,'abs')}</td></tr>
+ <tr><td>P/E · P/B LTM</td><td>${fmt(L.pe_ltm,'x')} · ${fmt(L.pb_ltm,'x')}</td></tr>
+ <tr><td>ROE LTM</td><td>${fmt(L.roe_ltm,'%')}</td></tr>
+ <tr><td>NIM · CIR</td><td>${fmt(L.nim_q,'%')} · ${fmt(L.cir_q,'%')}</td></tr>
+ <tr><td>Цена 3М · 1Г</td><td><span class="${L.r3m>=0?'up':'dn'}">${L.r3m}%</span> · <span class="${L.r1y>=0?'up':'dn'}">${L.r1y}%</span></td></tr>
+ <tr><td><b style="color:var(--fg)">Total return 3М · 1Г</b></td><td><b class="${L.r3m_tr>=0?'up':'dn'}">${L.r3m_tr>=0?'+':''}${L.r3m_tr}%</b> · <b class="${L.r1y_tr>=0?'up':'dn'}">${L.r1y_tr>=0?'+':''}${L.r1y_tr}%</b></td></tr>
+ <tr><td>Дивиденд LTM · дох-сть</td><td>${L.div_ltm} ₽ · ${L.div_yield}%</td></tr>
+ <tr><td>Отчётность</td><td>${L.period}</td></tr></table>`;K.appendChild(d)});
+const tk=document.getElementById('tks');
+T.forEach(t=>{const l=document.createElement('label');l.className='tk';
+ l.innerHTML=`<input type="checkbox" checked><span class="dot" style="background:${D.meta[t].color}"></span>${D.meta[t].name}`;
+ l.querySelector('input').onchange=e=>{e.target.checked?sel.add(t):sel.delete(t);draw()};tk.appendChild(l)});
+const P={'1Г':365,'3Г':1095,'5Л':1825,'Все':null};
+Object.keys(P).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;if(k==='Все')b.classList.add('on');
+ b.onclick=()=>{range=P[k]?[new Date(Date.now()-P[k]*864e5).toISOString().slice(0,10),'2100-01-01']:null;
+ document.querySelectorAll('#presets button').forEach(x=>x.classList.remove('on'));b.classList.add('on');draw()};
+ document.getElementById('presets').appendChild(b)});
+[1,2,3,4].forEach(n=>{const b=document.createElement('button');b.textContent=n;if(n===4)b.classList.add('on');
+ b.onclick=()=>{nP=n;document.querySelectorAll('#lay button').forEach(x=>x.classList.remove('on'));b.classList.add('on');build()};
+ document.getElementById('lay').appendChild(b)});
+mean.onchange=draw;norm.onchange=draw;full.onchange=draw;
+function build(){const c=document.getElementById('panels');c.innerHTML='';
+ c.style.gridTemplateColumns=nP===1?'1fr':'1fr 1fr';
+ for(let i=0;i<nP;i++){const d=document.createElement('div');d.className='panel';
+  d.innerHTML=`<div class="ph"><select>${M.map(m=>`<option value="${m.id}"${panels[i]===m.id?' selected':''}>${m.label}</option>`).join('')}</select><div class="vals" id="v${i}"></div></div><div class="chart" id="c${i}"></div>`;
+  d.querySelector('select').onchange=e=>{panels[i]=e.target.value;draw()};c.appendChild(d)}
+ draw()}
+function draw(){const nzAll=norm.checked,rebFull=full.checked;
+ for(let i=0;i<nP;i++){const mt=mById(panels[i]),tr=[];let vv='';const nz=nzAll&&!!mt.reb;
+  T.filter(t=>sel.has(t)).forEach(t=>{const s=D.meta[t].series[mt.id];if(!s)return;
+   let x=s.x,y=s.y;
+   if(range){const f=x.map((d,j)=>[d,y[j]]).filter(p=>p[0]>=range[0]);x=f.map(p=>p[0]);y=f.map(p=>p[1])}
+   if(!x.length)return;
+   const raw=y[y.length-1];
+   if(nz){const b=(rebFull&&mt.reb)?s.y[0]:y[0];y=y.map(v=>v/b*100)}
+   tr.push({x,y,name:D.meta[t].name,type:'scatter',mode:'lines',line:{color:D.meta[t].color,width:1.7},
+    hovertemplate:'<b>'+D.meta[t].name+'</b>: %{y:.2f}<extra></extra>'});
+   vv+=`<span style="color:${D.meta[t].color}">${D.meta[t].name} <b>${fmt(raw,mt.unit)}</b></span>`;
+   if(mean.checked){const a=y.reduce((p,c)=>p+c,0)/y.length;
+    tr.push({x:[x[0],x[x.length-1]],y:[a,a],mode:'lines',line:{color:D.meta[t].color,width:1,dash:'dot'},showlegend:false,hoverinfo:'skip'})}});
+  document.getElementById('v'+i).innerHTML=vv;
+  if(!nz&&mt.step&&D.thr_steps&&D.thr_steps[mt.id]){const st=D.thr_steps[mt.id];
+   let sx=st.x,sy=st.y;
+   if(range){const keep=sx.map((d,j)=>j).filter(j=>sx[j]>=range[0]||(j+1<sx.length&&sx[j+1]>range[0]));
+    if(keep.length){sx=keep.map(j=>st.x[j]);sy=keep.map(j=>st.y[j]);sx[0]=range[0]>sx[0]?range[0]:sx[0]}}
+   tr.push({x:sx,y:sy,mode:'lines',line:{color:st.color,width:1.4,dash:'dash',shape:'hv'},
+    name:st.label,hovertemplate:st.label+': %{y:.2f}%<extra></extra>',showlegend:false})}
+  const neg=tr.some(t=>t.y.some(v=>v<=0)),lg=(mt.scale==='log'&&!neg&&!nz);
+  const shp=[],ann=[];
+  if(!nz&&mt.thr){mt.thr.forEach(t=>{shp.push({type:'line',xref:'paper',x0:0,x1:1,yref:'y',y0:t[0],y1:t[0],
+    line:{color:t[2],width:1,dash:'dash'}});
+   ann.push({xref:'paper',x:0.01,y:t[0],yref:'y',text:t[1],showarrow:false,yanchor:'bottom',
+    font:{size:9,color:t[2]},bgcolor:'rgba(255,255,255,.75)'})})}
+  Plotly.react('c'+i,tr,{margin:{l:6,r:62,t:6,b:26},showlegend:false,hovermode:'x unified',
+   xaxis:{gridcolor:'#f1f3f5',showline:true,linecolor:'#dee2e6'},
+   yaxis:{side:'right',type:lg?'log':'linear',gridcolor:'#f1f3f5',ticksuffix:nz?'':(mt.unit==='%'?'%':(mt.unit==='x'?'x':'')),zeroline:false},
+   plot_bgcolor:'#fff',paper_bgcolor:'#fff',shapes:shp,annotations:ann,font:{family:'-apple-system,Segoe UI,Roboto,Arial',size:11}},
+   {displayModeBar:false,responsive:true})}}
+
+function sectTable(){
+ const tb=D.table,ys=tb.years,ord=tb.order;
+ const blocks=[['pe','P/E','x',1],['pb','P/B','x',0],['dy','Див. доходность','%',1]];
+ let h='<table><colgroup><col class="cnm">';
+ blocks.forEach(()=>ys.forEach(()=>h+='<col class="cy">'));
+ h+='</colgroup><thead><tr><th class="nm" rowspan="2">Компания</th>';
+ blocks.forEach(b=>h+='<th class="g bl'+(b[3]?' sh':'')+'" colspan="'+ys.length+'">'+b[1]+'</th>');
+ h+='</tr><tr>';
+ blocks.forEach(b=>ys.forEach((y,j)=>h+='<th class="y'+(j===0?' bl':'')+(b[3]?' sh':'')+'">'+y+'</th>'));
+ h+='</tr></thead><tbody>';
+ ord.forEach(t=>{
+  h+='<tr><td class="nm"><b>'+D.meta[t].name+'</b><span>'+t+'</span></td>';
+  blocks.forEach(b=>ys.forEach((y,j)=>{
+   const c=tb.rows[t][y]||{},v=c[b[0]];
+   let s='—';
+   if(v!=null){s=(b[2]==='%')?v.toFixed(1)+'%':v.toFixed(2)}
+   let ttl='';
+   if(b[0]==='dy'&&c.paid){s='<span class="pd" title="Выплачено '+c.dps+' ₽, отсечка '+c.rec_date+', цена '+c.px_ref+' ₽">'+s+' ●</span>'}
+   h+='<td class="'+(j===0?'bl ':'')+(b[3]?'sh':'')+'">'+s+'</td>'}));
+  h+='</tr>'});
+ h+='</tbody></table><div class="ftn">'+tb.note+'</div>';
+ document.getElementById('sect').innerHTML=h}
+sectTable();
+build();
+
+  }catch(e){
+    document.body.innerHTML='<div style="padding:40px;font:14px sans-serif;color:#c92a2a">Ошибка загрузки данных: '+e.message+'</div>';
+    console.error(e);
+  }
+})();
+</script></body></html>

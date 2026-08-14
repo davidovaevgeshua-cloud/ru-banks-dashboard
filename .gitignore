@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.DS_Store
+data/_html_prefix.txt
+data/_html_suffix.txt
+data/payload.json.tmp
