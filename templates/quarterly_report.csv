@@ -1,0 +1,3 @@
+field,ticker,bank_name,quarter,period_end,publication_date,source_url,notes,net_income_parent_q,roe_q_pct,roa_q_pct,nim_q_pct,cir_q_pct,cor_q_pct,roe_adj_q_pct,net_income_parent_ltm,nii_ltm,nfi_ltm,roe_ltm_pct,assets,equity_parent,loans,deposits,npl_ratio_pct,car_h20_pct,car_t1_pct,ni_growth_yoy_pct,dps_rub,rec_date,for_period,type,fwd_2026_ni,fwd_2026_eq,fwd_2027_ni,fwd_2027_eq,fwd_2028_ni,fwd_2028_eq
+example,SVCB,Совкомбанк,2026Q1,2026-03-31,2026-05-15,https://sovcombank.ru/about/finances,,,18.55,1.81,6.98,50.91,2.98,15.60,55.87,201.60,51.66,13.96,4194.54,428.36,2856.64,3005.03,4.39,10.96,9.49,63.27,,,,,,,,,,
+row1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

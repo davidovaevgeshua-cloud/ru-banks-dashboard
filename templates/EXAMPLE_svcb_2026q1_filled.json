@@ -1,0 +1,38 @@
+{
+  "ticker": "SVCB",
+  "bank_name": "Совкомбанк",
+  "quarter": "2026Q1",
+  "period_end": "2026-03-31",
+  "publication_date": "2026-05-15",
+  "source_url": "https://sovcombank.ru/about/finances (пример: пресс-релиз/датабук за 1К2026)",
+  "notes": "пример заполнения — цифры взяты из текущего payload дашборда на дату публикации 2026Q1",
+  "quarterly": {
+    "net_income_parent_q": null,
+    "roe_q_pct": 18.5495,
+    "roa_q_pct": 1.8087,
+    "nim_q_pct": 6.9809,
+    "cir_q_pct": 50.9065,
+    "cor_q_pct": 2.977,
+    "roe_adj_q_pct": 15.6009
+  },
+  "ltm": {
+    "net_income_parent_ltm": 55.866,
+    "nii_ltm": 201.595,
+    "nfi_ltm": 51.66,
+    "roe_ltm_pct": 13.9551
+  },
+  "balance": {
+    "assets": 4194.538,
+    "equity_parent": 428.361,
+    "loans": 2856.643,
+    "deposits": 3005.028,
+    "npl_ratio_pct": 4.3924,
+    "car_h20_pct": 10.963,
+    "car_t1_pct": 9.4874
+  },
+  "growth": {
+    "ni_growth_yoy_pct": 63.2679
+  },
+  "dividends": null,
+  "forward_updates": null
+}

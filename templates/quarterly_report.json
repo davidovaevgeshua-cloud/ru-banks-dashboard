@@ -1,0 +1,66 @@
+{
+  "_comment_ru": "Шаблон квартального МСФО-отчёта для обновления дашборда ru-banks-dashboard. Заполнить по каждому банку и прислать в чат Perplexity — я обновлю payload и state. Незаполненные поля оставь как null; если поле нет смысла заполнять для конкретного банка (например, BSPB не публикует ROA явно), тоже null. Все денежные показатели в млрд рублей. Проценты — как число без знака %, например 22.5, а не '22.5%' или 0.225.",
+
+  "ticker": "SVCB",
+  "bank_name": "Совкомбанк",
+  "quarter": "2026Q2",
+  "period_end": "2026-06-30",
+  "publication_date": "2026-08-15",
+  "source_url": "https://sovcombank.ru/about/finances",
+  "notes": "заметки для меня: например, изменение методологии, разовые доходы/убытки, эффекты сделок M&A",
+
+  "quarterly": {
+    "_comment": "Показатели ЗА КВАРТАЛ (не LTM). Ставим одно число за 2026Q2 отдельно.",
+    "net_income_parent_q":     null,
+    "roe_q_pct":               null,
+    "roa_q_pct":               null,
+    "nim_q_pct":               null,
+    "cir_q_pct":               null,
+    "cor_q_pct":               null,
+    "roe_adj_q_pct":           null
+  },
+
+  "ltm": {
+    "_comment": "LTM = сумма/среднее за последние 4 квартала. Пишем на дату publication_date. Если банк публикует LTM в датабуке — берём его; если нет — считаем сами по последним 4 кварталам.",
+    "net_income_parent_ltm":   null,
+    "nii_ltm":                 null,
+    "nfi_ltm":                 null,
+    "roe_ltm_pct":             null
+  },
+
+  "balance": {
+    "_comment": "Балансовые метрики на дату period_end.",
+    "assets":                  null,
+    "equity_parent":           null,
+    "loans":                   null,
+    "deposits":                null,
+    "npl_ratio_pct":           null,
+    "car_h20_pct":             null,
+    "car_t1_pct":              null
+  },
+
+  "growth": {
+    "_comment": "Опционально. YoY-рост чистой прибыли за LTM в процентах. Если банк раскрывает — здорово; если нет — оставь null, я пересчитаю сам от net_income_parent_ltm.",
+    "ni_growth_yoy_pct":       null
+  },
+
+  "dividends": {
+    "_comment": "Заполняется, только если совет директоров рекомендовал/собрание акционеров утвердил новый дивиденд за отчётный период. Если новых дивидендов нет, оставь блок как null или удали его.",
+    "dps_rub":                 null,
+    "rec_date":                null,
+    "for_period":              null,
+    "type":                    null,
+    "_hints": {
+      "rec_date":    "дата отсечки в формате YYYY-MM-DD, например 2026-10-15",
+      "for_period":  "за какой период дивиденд, например '1H2026', '9M2026', '2025' или '2026'",
+      "type":        "interim (промежуточный) / final (годовой) — из релиза"
+    }
+  },
+
+  "forward_updates": {
+    "_comment": "ОПЦИОНАЛЬНО. Если после отчёта менеджмент повысил/понизил гайденс, или ты хочешь скорректировать свой прогноз NI/EQ на 2026/2027/2028. Иначе оставь null — я сохраню текущие значения из _fwd_const.",
+    "2026": { "ni_bln": null, "eq_bln": null },
+    "2027": { "ni_bln": null, "eq_bln": null },
+    "2028": { "ni_bln": null, "eq_bln": null }
+  }
+}
