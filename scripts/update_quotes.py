@@ -46,6 +46,11 @@ DASHBOARD_TICKERS = ["SBER", "T", "VTBR", "DOMRF", "SVCB", "BSPB", "MBNK"]
 # Число префов BSPBP (для расчёта mcap с учётом префов)
 BSPBP_SHARES = 20_100_000  # штук
 
+# Квартальные показатели из отчётности: значение действует до следующего отчёта
+STEP_SERIES = ["roe_ltm", "roe_q", "roe_4q", "roa_q", "nim_q", "nim_4q", "cir_q", "cor_q", "npl",
+               "car_h20", "car_t1", "net_income_parent_ltm", "nii_ltm", "nfi_ltm", "equity_parent",
+               "assets", "loans", "deposits", "roe_adj_q", "ni_growth_yoy"]
+
 
 def http_get_json(url: str, timeout: int = 20, retries: int = 3) -> dict:
     last_err: Exception | None = None
@@ -194,25 +199,31 @@ def recompute_ticker(payload: dict, tk: str, new_close: float, today_iso: str) -
         _upsert("ey", 100.0 / pe_ltm)
     _upsert("ey_ntm", ey_ntm)
 
-    # 6) tr_index — приблизительное обновление: сохраняем предыдущее отношение
+    # 6) tr_index — реинвестирование дивидендов: tr_t = tr_{t-1} * (close_t + div_t) / close_{t-1}
     tr = s.get("tr_index")
     close_hist = s["close"]
     if tr and tr["x"]:
-        # tr = close_ratio_since_start * (1 + reinvested_div/close). Проще: скорректировать пропорц. изменению цены
-        prev_close = close_hist["y"][-2] if len(close_hist["y"]) >= 2 else close_hist["y"][-1]
-        prev_tr_last = tr["y"][-1]
-        if close_hist["x"][-1] == today_iso and len(close_hist["y"]) >= 2:
-            # обновление внутри дня — база: цена вчерашнего close + tr
-            # tr[-1] соответствует новой цене; пересчитаем от tr[-2]
-            base_tr = tr["y"][-2] if len(tr["y"]) >= 2 else prev_tr_last
-            base_px = close_hist["y"][-2]
-            new_tr = base_tr * (new_close / base_px)
-            tr["y"][-1] = round(new_tr, 6)
-        else:
-            # добавляем новую точку
-            new_tr = prev_tr_last * (new_close / prev_close)
+        if tr["x"][-1] == today_iso:
+            tr["x"].pop(); tr["y"].pop()
+        prev_date = tr["x"][-1]
+        cmap = dict(zip(close_hist["x"], close_hist["y"]))
+        prev_close = cmap.get(prev_date)
+        if prev_close:
+            div = payload.get("divs", {}).get(tk, {}).get(today_iso, 0.0)
             tr["x"].append(today_iso)
-            tr["y"].append(round(new_tr, 6))
+            tr["y"].append(round(tr["y"][-1] * (new_close + div) / prev_close, 6))
+        # tr_1y — доходность TR за 253 торговых дня
+        t1 = s.get("tr_1y")
+        if t1 is not None and t1.get("x") and len(tr["y"]) > 253:
+            if t1["x"][-1] == today_iso:
+                t1["x"].pop(); t1["y"].pop()
+            t1["x"].append(today_iso); t1["y"].append(round((tr["y"][-1] / tr["y"][-254] - 1) * 100, 4))
+
+    # 6b) квартальные (ступенчатые) ряды — протягиваем последнее значение до сегодня
+    for key in STEP_SERIES:
+        ser = s.get(key)
+        if ser and ser.get("x") and ser["x"][-1] < today_iso:
+            ser["x"].append(today_iso); ser["y"].append(ser["y"][-1])
 
     # dd_tr — drawdown TR; приблизительно = (tr/tr_peak - 1)*100
     if tr and s.get("dd_tr"):
@@ -312,10 +323,55 @@ def recompute_forward_table(payload: dict) -> None:
                 cell["pe"] = round(mcap / ni_y, 3)
             if eq_y:
                 cell["pb"] = round(mcap / eq_y, 3)
-            # dividend yield для непроплаченных — от текущей цены
-            dps = cell.get("dps")
-            if dps and not cell.get("paid"):
-                cell["dy"] = round(dps / close_now * 100.0, 2)
+            # дивидендная доходность
+            if cell.get("payments"):
+                apply_payments(payload, tk, cell, close_now)
+            else:
+                dps = cell.get("dps")
+                if dps and not cell.get("paid"):
+                    cell["dy"] = round(dps / close_now * 100.0, 2)
+
+
+def px_before(payload: dict, tk: str, rec_date: str) -> float | None:
+    """Цена закрытия последнего дня, когда акцию ещё можно купить с дивидендом (торговый день до отсечки)."""
+    c = payload["meta"][tk]["series"]["close"]
+    px = None
+    for x, y in zip(c["x"], c["y"]):
+        if x < rec_date:
+            px = y
+        else:
+            break
+    return px
+
+
+def apply_payments(payload: dict, tk: str, cell: dict, close_now: float) -> None:
+    """Выплаты года: прошедшие — к цене последнего дня с дивидендом, объявленные — к текущей цене."""
+    today = datetime.now(MSK).date().isoformat()
+    dy = 0.0
+    for p in cell["payments"]:
+        if p["rec_date"] <= today:
+            px = p.get("px_ref") or px_before(payload, tk, p["rec_date"])
+            p["px_ref"] = px
+            p["done"] = True
+            dy += p["dps"] / px * 100.0
+        else:
+            p.pop("px_ref", None)
+            p["done"] = False
+            dy += p["dps"] / close_now * 100.0
+    cell["dps"] = round(sum(p["dps"] for p in cell["payments"]), 4)
+    cell["dy"] = round(dy, 2)
+    cell["paid"] = any(p["done"] for p in cell["payments"])
+
+
+def recompute_div_ltm(payload: dict) -> None:
+    """Дивиденд LTM (по дате отсечки за 365 дней) и доходность к текущей цене."""
+    today = datetime.now(MSK).date()
+    lo = (today - timedelta(days=365)).isoformat()
+    for tk, last in payload["last"].items():
+        divs = payload.get("divs", {}).get(tk, {})
+        tot = sum(v for k, v in divs.items() if lo < k <= today.isoformat())
+        last["div_ltm"] = round(tot, 2)
+        last["div_yield"] = round(tot / last["close"] * 100, 1) if last.get("close") else None
 
 
 def migrate_bootstrap(payload: dict) -> None:
@@ -368,7 +424,11 @@ def main() -> int:
     args = parser.parse_args()
 
     now_msk = datetime.now(MSK)
-    today = now_msk.date().isoformat()
+    # Торговая дата: поздний (после полуночи) финальный запуск относится к предыдущему дню, выходные — к пятнице
+    td = (now_msk - timedelta(hours=6)).date()
+    while td.weekday() >= 5:
+        td -= timedelta(days=1)
+    today = td.isoformat()
 
     payload = load_payload()
     migrate_bootstrap(payload)
@@ -406,6 +466,7 @@ def main() -> int:
         per_ticker[tk] = {"close": new_close, "systime": q.get("systime"), "updatetime": q.get("updatetime")}
 
     recompute_forward_table(payload)
+    recompute_div_ltm(payload)
 
     # Метаданные
     payload["updated"] = now_msk.strftime("%d.%m.%Y %H:%M МСК")

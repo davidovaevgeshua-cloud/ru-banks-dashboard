@@ -160,7 +160,12 @@ function sectTable(){
    let s='—';
    if(v!=null){s=(b[2]==='%')?v.toFixed(1)+'%':v.toFixed(2)}
    let ttl='';
-   if(b[0]==='dy'&&c.paid){s='<span class="pd" title="Выплачено '+c.dps+' ₽, отсечка '+c.rec_date+', цена '+c.px_ref+' ₽">'+s+' ●</span>'}
+   if(b[0]==='dy'&&c.payments&&c.payments.length){
+    const fd=r=>r.split('-').reverse().join('.');
+    const tip=c.payments.map(p=>p.done?('● '+p.dps+' ₽ — отсечка '+fd(p.rec_date)+', цена '+p.px_ref+' ₽'):('○ '+p.dps+' ₽ — объявлен, отсечка '+fd(p.rec_date)+', к текущей цене')).join('&#10;');
+    const mk=(c.payments.some(p=>p.done)?' ●':'')+(c.payments.some(p=>!p.done)?' ○':'');
+    s='<span class="pd" title="'+tip+'">'+s+mk+'</span>'}
+   else if(b[0]==='dy'&&c.paid){s='<span class="pd" title="Выплачено '+c.dps+' ₽, отсечка '+c.rec_date+', цена '+c.px_ref+' ₽">'+s+' ●</span>'}
    h+='<td class="'+(j===0?'bl ':'')+(b[3]?'sh':'')+'">'+s+'</td>'}));
   h+='</tr>'});
  h+='</tbody></table><div class="ftn">'+tb.note+'</div>';
