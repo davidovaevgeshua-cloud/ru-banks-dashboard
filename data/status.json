@@ -1,48 +1,48 @@
 {
-  "updated_at": "2026-11-02T21:56:54.770114+03:00",
+  "updated_at": "2026-11-03T00:20:01.085189+03:00",
   "date": "2026-11-02",
   "finalize": false,
   "tickers": {
     "SBER": {
-      "close": 291.03,
-      "systime": "2026-11-02 21:56:55",
-      "updatetime": "21:41:55"
+      "close": 290.8,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "T": {
-      "close": 272.64,
-      "systime": "2026-11-02 21:56:54",
-      "updatetime": "21:41:54"
+      "close": 272.78,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "VTBR": {
-      "close": 55.615,
-      "systime": "2026-11-02 21:56:54",
-      "updatetime": "21:41:54"
+      "close": 55.5,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "DOMRF": {
-      "close": 2099.3,
-      "systime": "2026-11-02 21:56:55",
-      "updatetime": "21:41:55"
+      "close": 2095.2,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "SVCB": {
-      "close": 10.595,
-      "systime": "2026-11-02 21:56:33",
-      "updatetime": "21:41:33"
+      "close": 10.55,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "BSPB": {
-      "close": 251.48,
-      "systime": "2026-11-02 21:56:49",
-      "updatetime": "21:41:49"
+      "close": 251.99,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     },
     "MBNK": {
-      "close": 964,
-      "systime": "2026-11-02 21:56:38",
-      "updatetime": "21:41:38"
+      "close": 963.5,
+      "systime": "2026-11-02 23:50:41",
+      "updatetime": "23:50:40"
     }
   },
   "imoex": {
-    "last": 2456.4,
+    "last": 2459.53,
     "prev": 2513.04,
-    "updatetime": "21:56:56",
-    "systime": "2026-11-02 21:56:56"
+    "updatetime": "23:50:03",
+    "systime": "2026-11-02 23:50:03"
   }
 }
