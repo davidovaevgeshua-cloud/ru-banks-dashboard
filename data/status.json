@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-04T22:16:46.120884+03:00",
+  "updated_at": "2026-11-04T23:41:24.358801+03:00",
   "date": "2026-11-04",
-  "finalize": false,
+  "finalize": true,
   "tickers": {
     "SBER": {
       "close": 291.41,
