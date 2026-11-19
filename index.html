@@ -31,25 +31,27 @@ main{flex:1;display:grid;gap:12px}
 @media(max-width:1100px){.wrap{flex-direction:column}aside{width:100%;position:static}}
 
 
-#sect{margin:0 0 16px;background:#fff;border:1px solid #e9ecef;border-radius:8px;overflow-x:auto}
-#sect table{border-collapse:collapse;font-size:12.5px;width:100%;table-layout:fixed}
-#sect col.cnm{width:190px}
-#sect col.cy{width:auto}
-#sect th,#sect td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid #f1f3f5}
-#sect thead th{font-weight:600;color:#495057;font-size:11.5px;background:#fff}
-#sect thead th.g{text-align:center;font-size:12px;color:#212529;border-bottom:1px solid #dee2e6}
-#sect thead th.y{font-size:11px;color:#868e96;font-weight:500}
-#sect th.nm,#sect td.nm{text-align:left;position:sticky;left:0;background:#fff;z-index:2}
-#sect td.nm b{display:block;font-weight:600;color:#212529;font-size:13px;line-height:1.25}
-#sect td.nm span{color:#adb5bd;font-size:10.5px;letter-spacing:.4px}
-#sect .bl{border-left:1px solid #dee2e6}
-#sect td.sh{background:#eef6fd}
-#sect th.sh{background:#f5fafe}
-#sect tbody tr:hover td:not(.sh){background:#fbfcfd}
-#sect tbody tr:hover td.sh{background:#e4f0fb}
-#sect .pd{color:#2f9e44;font-weight:600;cursor:help}
-#sect .ftn{padding:8px 10px;font-size:11px;color:#868e96;border-top:1px solid #f1f3f5}
+.ftab{margin:0 0 16px;background:#fff;border:1px solid #e9ecef;border-radius:8px;overflow-x:auto}
+.ftab table{border-collapse:collapse;font-size:12.5px;width:100%;table-layout:fixed}
+.ftab col.cnm{width:190px}
+.ftab col.cy{width:auto}
+.ftab th,.ftab td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid #f1f3f5}
+.ftab thead th{font-weight:600;color:#495057;font-size:11.5px;background:#fff}
+.ftab thead th.g{text-align:center;font-size:12px;color:#212529;border-bottom:1px solid #dee2e6}
+.ftab thead th.y{font-size:11px;color:#868e96;font-weight:500}
+.ftab th.nm,.ftab td.nm{text-align:left;position:sticky;left:0;background:#fff;z-index:2}
+.ftab td.nm b{display:block;font-weight:600;color:#212529;font-size:13px;line-height:1.25}
+.ftab td.nm span{color:#adb5bd;font-size:10.5px;letter-spacing:.4px}
+.ftab .bl{border-left:1px solid #dee2e6}
+.ftab td.sh{background:#eef6fd}
+.ftab th.sh{background:#f5fafe}
+.ftab tbody tr:hover td:not(.sh){background:#fbfcfd}
+.ftab tbody tr:hover td.sh{background:#e4f0fb}
+.ftab .pd{color:#2f9e44;font-weight:600;cursor:help}
+.ftab .ftn{padding:8px 10px;font-size:11px;color:#868e96;border-top:1px solid #f1f3f5}
 
+#fcw{padding:12px 12px 0}#fcw h2{font-size:14px;margin:0 0 8px;font-weight:650}#fcst{margin:0}
+#fcst .neg{color:#c92a2a}#fcst .pos{color:#2f9e44}
 #scw{padding:0 12px}
 #scw .sch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 8px}
 #scw .sch h2{font-size:14px;margin:0;font-weight:650}
@@ -69,7 +71,7 @@ main{flex:1;display:grid;gap:12px}
 <span style="margin-left:auto;font-size:12px;color:var(--mut)" id="upd"></span></div>
 <div class="kpis" id="kpis"></div>
 </header>
-<div id="sect"></div>
+<div id="sect" class="ftab"></div>
 <div id="scw">
 <div class="sch"><h2>Сравнительная оценка</h2>
 <div class="grp"><span>Прогнозный год</span><span id="scy"></span></div>
@@ -80,6 +82,7 @@ main{flex:1;display:grid;gap:12px}
 </div>
 <div class="note" style="margin-top:6px"><b>P/E и рост прибыли:</b> по умолчанию рост — среднегодовой темп (CAGR) чистой прибыли за весь прогнозный горизонт: сглаживает эффект низкой или высокой базы отдельного года; переключатель «за выбранный год» возвращает рост год к году. Используется рост чистой прибыли, а не прибыли на акцию: у банков с изменением числа акций (Т-Технологии, ВТБ) эти показатели расходятся. Пунктирные линии — медианы по банкам, отмеченным в списке слева. Зелёный квадрант — дешевле медианы при росте прибыли выше медианы; красный — дороже медианы при росте ниже.<br><b>P/B и ROE:</b> сплошная линия — регрессия ROE на P/B по отмеченным банкам, то есть уровень рентабельности, который рынок в среднем «закладывает» в данный P/B. Банк выше линии (зелёная зона) — дешевле, чем следует из его ROE; ниже (красная зона) — дороже. Отклонение в пределах ±1 п.п. от линии не выделяется: при семи банках и прогнозных данных это в пределах погрешности. Медианы показаны светлым пунктиром как ориентир.<br>P/E и P/B — форвардные к текущей цене, прогнозы прибыли и капитала те же, что в таблице выше.</div>
 </div>
+<div id="fcw"><h2>Прогнозы банков</h2><div id="fcst" class="ftab"></div></div>
 <div class="wrap">
 <aside><h3>Компании</h3><div id="tks"></div>
 <h3 style="margin-top:16px">Методика</h3>
@@ -190,6 +193,33 @@ function sectTable(){
  h+='</tbody></table><div class="ftn">'+tb.note+'</div>';
  document.getElementById('sect').innerHTML=h}
 sectTable();
+
+// ---- Прогнозы: ЧП, ROE, EPS, рост ЧП и EPS ----
+function fcTable(){
+ const ys=D.table.years.map(String),ord=D.table.order,FC=D._fwd_const||{},SH=D._shares||{},XS=D.eps_shares||{};
+ const shares=(t,y)=>(XS[t]&&XS[t][y]!=null)?XS[t][y]:SH[t];
+ const ni=(t,y)=>{const f=FC[t]&&FC[t][y];return f&&f.ni!=null?f.ni:null};
+ const ni0=t=>{const n=ni(t,ys[0]),g=D.table.rows[t][ys[0]]&&D.table.rows[t][ys[0]].g;return n!=null&&g!=null?n/(1+g/100):null};
+ const eps=(t,y)=>{const n=y===String(+ys[0]-1)?ni0(t):ni(t,y),s=shares(t,y);return n!=null&&s?n*1e9/s:null};
+ const prevY=y=>String(+y-1);
+ const nf=(v,d)=>v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+ const pc=v=>'<span class="'+(v<0?'neg':'')+'">'+(v>0?'+':'')+nf(v,1)+'%</span>';
+ const blocks=[
+  ['Чистая прибыль, млрд ₽',(t,y)=>{const v=ni(t,y);return v==null?'—':nf(v,1)},0],
+  ['ROE, %',(t,y)=>{const c=D.table.rows[t][y];return c&&c.roe!=null?nf(c.roe,1)+'%':'—'},1],
+  ['EPS, ₽',(t,y)=>{const v=eps(t,y);return v==null?'—':nf(v,v<10?2:1)},0],
+  ['Рост чистой прибыли',(t,y)=>{const c=D.table.rows[t][y];return c&&c.g!=null?pc(c.g):'—'},1],
+  ['Рост EPS',(t,y)=>{const c=D.table.rows[t][y],s1=shares(t,y),s0=shares(t,prevY(y));return c&&c.g!=null&&s1&&s0?pc(((1+c.g/100)*s0/s1-1)*100):'—'},0]];
+ let h='<table><colgroup><col class="cnm">';blocks.forEach(()=>ys.forEach(()=>h+='<col class="cy">'));
+ h+='</colgroup><thead><tr><th class="nm" rowspan="2">Компания</th>';
+ blocks.forEach(b=>h+='<th class="g bl'+(b[2]?' sh':'')+'" colspan="'+ys.length+'">'+b[0]+'</th>');
+ h+='</tr><tr>';blocks.forEach(b=>ys.forEach((y,j)=>h+='<th class="y'+(j===0?' bl':'')+(b[2]?' sh':'')+'">'+y+'П</th>'));
+ h+='</tr></thead><tbody>';
+ ord.forEach(t=>{h+='<tr><td class="nm"><b>'+D.meta[t].name+'</b><span>'+t+'</span></td>';
+  blocks.forEach(b=>ys.forEach((y,j)=>h+='<td class="'+(j===0?'bl ':'')+(b[2]?'sh':'')+'">'+b[1](t,y)+'</td>'));h+='</tr>'});
+ h+='</tbody></table><div class="ftn">'+(D.eps_note||'')+'</div>';
+ document.getElementById('fcst').innerHTML=h}
+fcTable();
 
 // ---- Сравнительная оценка: scatter с квадрантами по медианам ----
 let scYear=String(D.table.years[0]);
