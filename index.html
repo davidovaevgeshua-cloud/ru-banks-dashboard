@@ -59,6 +59,10 @@ main{display:grid;gap:12px}
 .ftab tbody tr:hover td.cg{background:#dbefe0}.ftab tbody tr:hover td.cr{background:#f8dede}
 .ftab tbody tr.md td{background:#f8f9fa;font-weight:600;border-top:1px solid #ced4da;color:#343a40}
 .ftab tbody tr.md:hover td{background:#f1f3f5}.ftab tbody tr.md td.nm b{font-size:12.5px}
+#hsw{padding:12px 12px 0}#hsw .sch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 8px}#hsw h2{font-size:14px;margin:0;font-weight:650}
+#hist{display:grid;grid-template-columns:1fr 1fr;gap:12px}#hist .panel h4{margin:2px 0 0;font-size:13px;font-weight:600}
+#hist .sub{font-size:11px;color:var(--mut)}.hchart{height:340px}
+@media(max-width:1100px){#hist{grid-template-columns:1fr}}
 #meth{margin:0 12px 16px;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:10px 14px}
 #meth summary{cursor:pointer;font-weight:650;font-size:14px}#meth .note{margin-top:8px;columns:2 420px;column-gap:28px}
 #meth h4{margin:10px 0 2px;font-size:12px;color:#343a40;break-after:avoid}#meth p{margin:0 0 6px}
@@ -94,6 +98,15 @@ main{display:grid;gap:12px}
 <div class="panel"><h4>P/B и рентабельность капитала (ROE)</h4><div class="sub" id="sc2s"></div><div class="schart" id="sc2"></div></div>
 </div>
 <div class="note" style="margin-top:6px"><b>P/E и рост прибыли:</b> по умолчанию рост — среднегодовой темп (CAGR) чистой прибыли за весь прогнозный горизонт: сглаживает эффект низкой или высокой базы отдельного года; переключатель «за выбранный год» возвращает рост год к году. Используется рост чистой прибыли, а не прибыли на акцию: у банков с изменением числа акций (Т-Технологии, ВТБ) эти показатели расходятся. Пунктирные линии — медианы по банкам, выбранным в шапке. Зелёный квадрант — дешевле медианы при росте прибыли выше медианы; красный — дороже медианы при росте ниже.<br><b>P/B и ROE:</b> сплошная линия — регрессия ROE на P/B по выбранным банкам, то есть уровень рентабельности, который рынок в среднем «закладывает» в данный P/B. Банк выше линии (зелёная зона) — дешевле, чем следует из его ROE; ниже (красная зона) — дороже. Отклонение в пределах ±1 п.п. от линии не выделяется: при семи банках и прогнозных данных это в пределах погрешности. Медианы показаны светлым пунктиром как ориентир.<br>P/E и P/B — форвардные к текущей цене, прогнозы прибыли и капитала те же, что в таблице выше.</div>
+</div>
+<div id="hsw"><div class="sch"><h2>Оценка относительно собственной истории</h2>
+<div class="grp"><span>Мультипликаторы</span><span id="hsm"></span></div>
+<div class="grp"><span>История</span><span id="hsp"></span></div></div>
+<div id="hist">
+<div class="panel"><h4 id="hs1t"></h4><div class="sub" id="hs1s"></div><div class="hchart" id="hs1"></div></div>
+<div class="panel"><h4 id="hs2t"></h4><div class="sub" id="hs2s"></div><div class="hchart" id="hs2"></div></div>
+</div>
+<div class="note" style="margin-top:6px">Точка — текущее значение, вертикальная черта — медиана за выбранный период, серая полоса — диапазон, в котором мультипликатор находился 80% дней (от 10-го до 90-го перцентиля). Справа — отклонение текущего значения от медианы: зелёным — ниже медианы более чем на 5% (дешевле собственной истории), красным — выше более чем на 5%, серым — в пределах ±5%. Во всплывающей подсказке — доля дней, когда мультипликатор был ниже текущего. NTM-мультипликаторы в истории посчитаны по прогнозам, которые действовали на каждую дату; после пересмотра прогноза (например, Совкомбанк 19.11.2026) текущее значение может выйти за прежний диапазон. Шкала логарифмическая.</div>
 </div>
 <div class="wrap">
 <main id="panels"></main></div>
@@ -139,7 +152,7 @@ T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div'
 const tk=document.getElementById('tks'),chipEl={};
 function applySel(){T.forEach(t=>{chipEl[t].classList.toggle('off',!sel.has(t));cardEl[t].style.display=sel.has(t)?'':'none'});
  allChip.textContent=sel.size===T.length?'снять все':'выбрать все';
- sectTable();fcTable();scat();draw()}
+ sectTable();fcTable();scat();hist();draw()}
 T.forEach(t=>{const c=document.createElement('span');c.className='chip';chipEl[t]=c;
  c.innerHTML=`<span class="dot" style="background:${D.meta[t].color}"></span>${D.meta[t].name}`;
  c.onclick=()=>{sel.has(t)?sel.delete(t):sel.add(t);applySel()};tk.appendChild(c)});
@@ -279,6 +292,51 @@ function fcTable(){
  el.innerHTML=tblHead(blocks,ys,'П')+tblBody(blocks,ys,ord)+'<div class="ftn">'+(D.eps_note||'')+
   ' Цвет — относительно медианы по выбранным банкам: зелёный — выше медианы, красный — ниже. По прибыли и EPS в рублях медиана не считается: абсолютные значения у банков разного размера несопоставимы.</div>'}
 fcTable();
+
+// ---- Оценка относительно собственной истории ----
+let hsM='ntm',hsP='2024';
+const pcs=d=>Math.abs(d)<.5?'0%':(d>0?'+':'')+nf(d,0)+'%';
+const pctl=(s,q)=>{const i=(s.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo)};
+[['ntm','NTM'],['ltm','LTM']].forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t;if(k===hsM)b.classList.add('on');
+ b.onclick=()=>{hsM=k;document.querySelectorAll('#hsm button').forEach(x=>x.classList.toggle('on',x===b));hist()};document.getElementById('hsm').appendChild(b)});
+[['2024','с 2024 г.'],['all','вся история']].forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t;if(k===hsP)b.classList.add('on');
+ b.onclick=()=>{hsP=k;document.querySelectorAll('#hsp button').forEach(x=>x.classList.toggle('on',x===b));hist()};document.getElementById('hsp').appendChild(b)});
+function histPlot(el,mid,label){
+ const ttl=document.getElementById(el+'t'),sub=document.getElementById(el+'s');
+ const rows=[];
+ D.table.order.filter(t=>sel.has(t)).forEach(t=>{const s=D.meta[t].series[mid];if(!s)return;
+  const v=[];s.x.forEach((x,i)=>{const y=s.y[i];if(y!=null&&y>0&&(hsP==='all'||x>='2024-01-01'))v.push([x,y])});
+  if(v.length<20)return;
+  const ys=v.map(p=>p[1]).sort((a,b)=>a-b),cur=v[v.length-1][1];
+  rows.push({t,name:D.meta[t].name,color:D.meta[t].color,cur,med:pctl(ys,.5),p10:pctl(ys,.1),p90:pctl(ys,.9),
+   rank:ys.filter(y=>y<cur).length/ys.length*100,from:v[0][0],n:v.length})});
+ ttl.textContent=label;
+ if(!rows.length){Plotly.purge(el);document.getElementById(el).innerHTML='<div class="note" style="padding:20px">Нет данных по выбранным банкам</div>';sub.textContent='';return}
+ if(!document.getElementById(el).classList.contains('js-plotly-plot'))document.getElementById(el).innerHTML='';
+ const late=rows.filter(r=>r.from>(hsP==='all'?'2000':'2024-01-31'));
+ sub.textContent=hsP==='all'?'Вся доступная история; начало ряда по каждому банку — во всплывающей подсказке':'История с 01.01.2024'+(late.length?'; короче у '+late.map(r=>r.name+' (с '+fd(r.from)+')').join(', '):'');
+ const Y=rows.map(r=>r.name);
+ const tr=[];
+ rows.forEach(r=>tr.push({x:[r.p10,r.p90],y:[r.name,r.name],mode:'lines',line:{color:'#e5e7eb',width:16},hoverinfo:'skip',showlegend:false}));
+ tr.push({x:rows.map(r=>r.med),y:Y,mode:'markers',marker:{symbol:'line-ns',size:20,line:{width:3,color:'#343a40'}},
+  customdata:rows.map(r=>[nf(r.med,2),nf(r.p10,2),nf(r.p90,2)]),
+  hovertemplate:'<b>%{y}</b><br>Медиана: %{customdata[0]}x<br>80% дней: %{customdata[1]}x – %{customdata[2]}x<extra></extra>',showlegend:false});
+ tr.push({x:rows.map(r=>r.cur),y:Y,mode:'markers+text',marker:{size:13,color:rows.map(r=>r.color),line:{color:'#fff',width:2}},
+  text:rows.map(r=>nf(r.cur,2)+'x'),textposition:'top center',textfont:{size:11,color:'#374151'},cliponaxis:false,
+  customdata:rows.map(r=>[nf(r.cur,2),nf(r.med,2),pcs((r.cur/r.med-1)*100).slice(0,-1),nf(r.rank,0),fd(r.from),r.n]),
+  hovertemplate:'<b>%{y}</b><br>Сейчас: %{customdata[0]}x (медиана %{customdata[1]}x, %{customdata[2]}%)<br>Ниже текущего было %{customdata[3]}% дней<br>История: с %{customdata[4]}, %{customdata[5]} дн.<extra></extra>',showlegend:false});
+ const all=rows.flatMap(r=>[r.cur,r.p10,r.p90,r.med]),lo=Math.min(...all)*.85,hi=Math.max(...all)*1.12;
+ const ann=rows.map(r=>{const d=(r.cur/r.med-1)*100;return {xref:'paper',x:1,xanchor:'left',xshift:8,y:r.name,yref:'y',showarrow:false,
+  text:'<b>'+pcs(d)+'</b>',font:{size:11,color:d<=-5?'#2f9e44':d>=5?'#c92a2a':'#868e96'}}});
+ ann.push({xref:'paper',x:1,xanchor:'left',xshift:4,y:1,yref:'paper',yanchor:'bottom',showarrow:false,text:'к медиане',font:{size:10,color:'#868e96'}});
+ Plotly.react(el,tr,{margin:{l:100,r:70,t:22,b:36},separators:', ',hovermode:'closest',
+  xaxis:Object.assign({type:'log',range:[Math.log10(lo),Math.log10(hi)],gridcolor:'#f1f3f5',zeroline:false,showline:true,linecolor:'#dee2e6'},logTicks(lo,hi,'x')),
+  yaxis:{type:'category',categoryorder:'array',categoryarray:[...Y].reverse(),gridcolor:'#fff',ticks:'',automargin:true},
+  annotations:ann,plot_bgcolor:'#fff',paper_bgcolor:'#fff',font:{family:'-apple-system,Segoe UI,Roboto,Arial',size:11}},
+  {displayModeBar:false,responsive:true,locale:'ru'})}
+function hist(){const u=hsM.toUpperCase();
+ histPlot('hs1','pe_'+hsM,'P/E '+u);histPlot('hs2','pb_'+hsM,'P/B '+u)}
+hist();
 
 // ---- Сравнительная оценка: scatter с квадрантами по медианам ----
 let scYear=String(D.table.years[0]);
