@@ -467,6 +467,8 @@ def main() -> int:
 
     recompute_forward_table(payload)
     recompute_div_ltm(payload)
+    # Порядок карточек — по убыванию капитализации
+    payload["order"] = sorted(payload["last"], key=lambda k: -(payload["last"][k].get("mcap") or 0))
 
     # Метаданные
     payload["updated"] = now_msk.strftime("%d.%m.%Y %H:%M МСК")
