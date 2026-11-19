@@ -49,6 +49,15 @@ main{flex:1;display:grid;gap:12px}
 #sect tbody tr:hover td.sh{background:#e4f0fb}
 #sect .pd{color:#2f9e44;font-weight:600;cursor:help}
 #sect .ftn{padding:8px 10px;font-size:11px;color:#868e96;border-top:1px solid #f1f3f5}
+
+#scw{padding:0 12px}
+#scw .sch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 8px}
+#scw .sch h2{font-size:14px;margin:0;font-weight:650}
+#scat{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#scat .panel h4{margin:2px 0 0;font-size:13px;font-weight:600}
+#scat .panel .sub{font-size:11px;color:var(--mut);margin-bottom:2px;min-height:32px}
+.schart{height:400px}
+@media(max-width:1100px){#scat{grid-template-columns:1fr}}
 </style></head><body>
 <header>
 <div class="top"><h1>RU Financials · сравнение банков</h1>
@@ -61,6 +70,16 @@ main{flex:1;display:grid;gap:12px}
 <div class="kpis" id="kpis"></div>
 </header>
 <div id="sect"></div>
+<div id="scw">
+<div class="sch"><h2>Сравнительная оценка</h2>
+<div class="grp"><span>Прогнозный год</span><span id="scy"></span></div>
+<div class="grp"><label style="font-size:13px"><input type="checkbox" id="sctr"> линия регрессии на графике P/E</label></div></div>
+<div id="scat">
+<div class="panel"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h4>P/E и рост чистой прибыли</h4><div class="grp" style="margin-left:auto"><span>Рост</span><span id="scgm"></span></div></div><div class="sub" id="sc1s"></div><div class="schart" id="sc1"></div></div>
+<div class="panel"><h4>P/B и рентабельность капитала (ROE)</h4><div class="sub" id="sc2s"></div><div class="schart" id="sc2"></div></div>
+</div>
+<div class="note" style="margin-top:6px"><b>P/E и рост прибыли:</b> по умолчанию рост — среднегодовой темп (CAGR) чистой прибыли за весь прогнозный горизонт: сглаживает эффект низкой или высокой базы отдельного года; переключатель «за выбранный год» возвращает рост год к году. Используется рост чистой прибыли, а не прибыли на акцию: у банков с изменением числа акций (Т-Технологии, ВТБ) эти показатели расходятся. Пунктирные линии — медианы по банкам, отмеченным в списке слева. Зелёный квадрант — дешевле медианы при росте прибыли выше медианы; красный — дороже медианы при росте ниже.<br><b>P/B и ROE:</b> сплошная линия — регрессия ROE на P/B по отмеченным банкам, то есть уровень рентабельности, который рынок в среднем «закладывает» в данный P/B. Банк выше линии (зелёная зона) — дешевле, чем следует из его ROE; ниже (красная зона) — дороже. Отклонение в пределах ±1 п.п. от линии не выделяется: при семи банках и прогнозных данных это в пределах погрешности. Медианы показаны светлым пунктиром как ориентир.<br>P/E и P/B — форвардные к текущей цене, прогнозы прибыли и капитала те же, что в таблице выше.</div>
+</div>
 <div class="wrap">
 <aside><h3>Компании</h3><div id="tks"></div>
 <h3 style="margin-top:16px">Методика</h3>
@@ -95,7 +114,7 @@ T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div'
 const tk=document.getElementById('tks');
 T.forEach(t=>{const l=document.createElement('label');l.className='tk';
  l.innerHTML=`<input type="checkbox" checked><span class="dot" style="background:${D.meta[t].color}"></span>${D.meta[t].name}`;
- l.querySelector('input').onchange=e=>{e.target.checked?sel.add(t):sel.delete(t);draw()};tk.appendChild(l)});
+ l.querySelector('input').onchange=e=>{e.target.checked?sel.add(t):sel.delete(t);draw();scat()};tk.appendChild(l)});
 const P={'1Г':365,'3Г':1095,'5Л':1825,'Все':null};
 Object.keys(P).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;if(k==='Все')b.classList.add('on');
  b.onclick=()=>{range=P[k]?[new Date(Date.now()-P[k]*864e5).toISOString().slice(0,10),'2100-01-01']:null;
@@ -171,6 +190,94 @@ function sectTable(){
  h+='</tbody></table><div class="ftn">'+tb.note+'</div>';
  document.getElementById('sect').innerHTML=h}
 sectTable();
+
+// ---- Сравнительная оценка: scatter с квадрантами по медианам ----
+let scYear=String(D.table.years[0]);
+const med=a=>{const s=[...a].sort((p,q)=>p-q),n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):null};
+D.table.years.forEach(y=>{const b=document.createElement('button');b.textContent=y+'П';if(String(y)===scYear)b.classList.add('on');
+ b.onclick=()=>{scYear=String(y);document.querySelectorAll('#scy button').forEach(x=>x.classList.remove('on'));b.classList.add('on');scat()};
+ document.getElementById('scy').appendChild(b)});
+sctr.onchange=scat;
+let scG='cagr';
+const Y0=D.table.years[0],YN=D.table.years[D.table.years.length-1];
+const cagrLbl='CAGR '+(Y0-1)+'–'+YN+'П';
+[['cagr',cagrLbl],['year','за выбранный год']].forEach(([k,t])=>{const b=document.createElement('button');b.textContent=t;if(k===scG)b.classList.add('on');
+ b.onclick=()=>{scG=k;document.querySelectorAll('#scgm button').forEach(x=>x.classList.remove('on'));b.classList.add('on');scat()};
+ document.getElementById('scgm').appendChild(b)});
+// среднегодовой рост чистой прибыли за весь прогнозный горизонт (база — год перед первым прогнозным)
+function cagr(t){const r=D.table.rows[t];let m=1;for(const y of D.table.years){const c=r&&r[String(y)];if(!c||c.g==null)return null;m*=1+c.g/100}
+ return (Math.pow(m,1/D.table.years.length)-1)*100}
+const BAND=1; // нейтральная полоса вокруг линии регрессии, п.п. ROE
+function ols(xs,ys){const n=xs.length,ax=xs.reduce((a,b)=>a+b,0)/n,ay=ys.reduce((a,b)=>a+b,0)/n;
+ let sxy=0,sxx=0,syy=0;xs.forEach((x,i)=>{sxy+=(x-ax)*(ys[i]-ay);sxx+=(x-ax)**2;syy+=(ys[i]-ay)**2});
+ if(!(sxx>0))return null;const k=sxy/sxx;return {k,c:ay-k*ax,r2:syy>0?sxy*sxy/(sxx*syy):0}}
+const sg=v=>(v>=0?'+':'')+v.toFixed(1);
+// mode: 'quad' — квадранты по медианам; 'reg' — полосы относительно линии регрессии
+function scPlot(el,pts,xk,yk,xl,yl,yname,mode){
+ const sub=document.getElementById(el+'s'),box=document.getElementById(el);
+ if(pts.length<(mode==='reg'?3:2)){Plotly.purge(el);box.innerHTML='<div class="note" style="padding:20px">Отметьте минимум '+(mode==='reg'?'три банка':'два банка')+'</div>';sub.textContent='';return}
+ if(!box.classList.contains('js-plotly-plot'))box.innerHTML='';
+ const xs=pts.map(p=>p[xk]),ys=pts.map(p=>p[yk]);
+ const mx=med(xs),my=med(ys),R=ols(xs,ys);
+ const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ const dx=(x1-x0)||1,dy=(y1-y0)||1;
+ const xr=[Math.max(0,x0-dx*.15),x1+dx*.15],yr=[y0-dy*.15,y1+dy*.22];
+ const pos=pts.map((p,i)=>pts.some((q,j)=>j!==i&&Math.abs(q[xk]-p[xk])<dx*.12&&q[yk]>p[yk]&&q[yk]-p[yk]<dy*.15)?'bottom center':'top center');
+ const isReg=mode==='reg'&&R;
+ const res=isReg?pts.map(p=>p[yk]-(R.k*p[xk]+R.c)):null;
+ const verdict=r=>r>BAND?'дешевле, чем следует из ROE':r<-BAND?'дороже, чем следует из ROE':'в пределах линии (±'+BAND+' п.п.)';
+ const tr=[{x:xs,y:ys,mode:'markers+text',type:'scatter',
+  text:pts.map(p=>D.meta[p.t].name),textposition:pos,textfont:{size:11,color:'#374151'},cliponaxis:false,
+  marker:{size:15,color:pts.map(p=>D.meta[p.t].color),line:{color:'#fff',width:2}},
+  customdata:pts.map((p,i)=>[D.meta[p.t].name,p.t,isReg?sg(res[i]):'',isReg?verdict(res[i]):'']),
+  hovertemplate:'<b>%{customdata[0]}</b> %{customdata[1]}<br>'+xl+': %{x:.2f}x<br>'+yname+': %{y:.1f}%'+
+   (isReg?'<br>Отклонение от линии: %{customdata[2]} п.п.<br>%{customdata[3]}':'')+'<extra></extra>'}];
+ const shp=[],ann=[];
+ const A=(x,y,xa,ya,t,c)=>({xref:'paper',yref:'paper',x,y,xanchor:xa,yanchor:ya,text:t,showarrow:false,font:{size:10,color:c}});
+ const L=x=>R.k*x+R.c;
+ if(isReg){
+  // полосы: выше линии+BAND — зелёная, ниже линии−BAND — красная (обрезаются областью графика)
+  shp.push({type:'path',xref:'x',yref:'y',layer:'below',line:{width:0},fillcolor:'rgba(47,158,68,.08)',
+   path:`M${xr[0]},${L(xr[0])+BAND} L${xr[1]},${L(xr[1])+BAND} L${xr[1]},${yr[1]+1e3} L${xr[0]},${yr[1]+1e3} Z`});
+  shp.push({type:'path',xref:'x',yref:'y',layer:'below',line:{width:0},fillcolor:'rgba(201,42,42,.07)',
+   path:`M${xr[0]},${L(xr[0])-BAND} L${xr[1]},${L(xr[1])-BAND} L${xr[1]},${yr[0]-1e3} L${xr[0]},${yr[0]-1e3} Z`});
+  tr.push({x:xr,y:xr.map(L),mode:'lines',line:{color:'#495057',width:1.4},
+   hovertemplate:'Оценка рынком с учётом ROE<br>R² = '+R.r2.toFixed(2)+'<extra></extra>'});
+  // медианы — тонкий ориентир без заливки
+  shp.push({type:'line',xref:'x',yref:'y',x0:mx,x1:mx,y0:yr[0],y1:yr[1],line:{color:'#adb5bd',width:1,dash:'dot'}});
+  shp.push({type:'line',xref:'x',yref:'y',x0:xr[0],x1:xr[1],y0:my,y1:my,line:{color:'#adb5bd',width:1,dash:'dot'}});
+  ann.push(A(.01,.99,'left','top','выше линии — дешевле с учётом ROE','#2f9e44'),
+   A(.99,.01,'right','bottom','ниже линии — дороже с учётом ROE','#c92a2a'));
+  const rk=pts.map((p,i)=>[D.meta[p.t].name,res[i]]).sort((a,b)=>b[1]-a[1]);
+  sub.innerHTML='Линия: ROE = '+R.c.toFixed(1)+' + '+R.k.toFixed(1)+' × P/B, R² = '+R.r2.toFixed(2)+'. Отклонение от линии, п.п.: '+
+   rk.map(r=>'<span class="'+(r[1]>BAND?'up':r[1]<-BAND?'dn':'')+'">'+r[0]+' '+sg(r[1])+'</span>').join(' · ');
+ }else{
+  if(sctr.checked&&R)tr.push({x:xr,y:xr.map(L),mode:'lines',line:{color:'#9ca3af',width:1.3,dash:'dot'},
+    hovertemplate:'Регрессия, R² = '+R.r2.toFixed(2)+'<extra></extra>'});
+  shp.push({type:'rect',xref:'x',yref:'y',x0:xr[0],x1:mx,y0:my,y1:yr[1],fillcolor:'rgba(47,158,68,.07)',line:{width:0},layer:'below'},
+   {type:'rect',xref:'x',yref:'y',x0:mx,x1:xr[1],y0:yr[0],y1:my,fillcolor:'rgba(201,42,42,.06)',line:{width:0},layer:'below'},
+   {type:'line',xref:'x',yref:'y',x0:mx,x1:mx,y0:yr[0],y1:yr[1],line:{color:'#6b7280',width:1,dash:'dash'}},
+   {type:'line',xref:'x',yref:'y',x0:xr[0],x1:xr[1],y0:my,y1:my,line:{color:'#6b7280',width:1,dash:'dash'}});
+  ann.push(A(.01,.99,'left','top','дешевле · рост выше','#2f9e44'),A(.99,.99,'right','top','дороже · рост выше','#868e96'),
+   A(.01,.01,'left','bottom','дешевле · рост ниже','#868e96'),A(.99,.01,'right','bottom','дороже · рост ниже','#c92a2a'));
+  sub.textContent='Медиана: '+xl+' '+mx.toFixed(2)+'x · '+yname+' '+my.toFixed(1)+'% · банков: '+pts.length;
+ }
+ const mc=isReg?'#adb5bd':'#6b7280';
+ ann.push({xref:'x',yref:'paper',x:mx,y:1,yanchor:'bottom',text:'медиана '+mx.toFixed(2)+'x',showarrow:false,font:{size:10,color:mc}},
+  {xref:'paper',yref:'y',x:1,y:my,xanchor:'left',yanchor:'middle',xshift:4,text:'медиана<br>'+my.toFixed(1)+'%',align:'left',showarrow:false,font:{size:10,color:mc}});
+ Plotly.react(el,tr,{margin:{l:48,r:58,t:20,b:40},showlegend:false,hovermode:'closest',
+  xaxis:{range:xr,title:{text:xl+' → дороже',font:{size:11,color:'#6b7280'}},ticksuffix:'x',tickformat:'.1f',gridcolor:'#f1f3f5',zeroline:false,showline:true,linecolor:'#dee2e6'},
+  yaxis:{range:yr,title:{text:yl,font:{size:11,color:'#6b7280'}},ticksuffix:'%',gridcolor:'#f1f3f5',zeroline:yr[0]<0,zerolinecolor:'#dee2e6',showline:true,linecolor:'#dee2e6'},
+  plot_bgcolor:'#fff',paper_bgcolor:'#fff',shapes:shp,annotations:ann,font:{family:'-apple-system,Segoe UI,Roboto,Arial',size:11}},
+  {displayModeBar:false,responsive:true})}
+function scat(){
+ const y=scYear,pts=[];
+ T.filter(t=>sel.has(t)).forEach(t=>{const c=D.table.rows[t]&&D.table.rows[t][y];if(c)pts.push({t,pe:c.pe,pb:c.pb,roe:c.roe,g:scG==='cagr'?cagr(t):c.g})});
+ const gl=scG==='cagr'?['Рост чистой прибыли, '+cagrLbl+', % в год','рост прибыли ('+cagrLbl+')']:['Рост чистой прибыли '+y+'П, % г/г','рост прибыли '+y+'П'];
+ scPlot('sc1',pts.filter(p=>p.pe!=null&&p.g!=null),'pe','g','P/E '+y+'П',gl[0],gl[1],'quad');
+ scPlot('sc2',pts.filter(p=>p.pb!=null&&p.roe!=null),'pb','roe','P/B '+y+'П','ROE '+y+'П, %','ROE','reg')}
+scat();
+
 build();
 
   }catch(e){
