@@ -16,19 +16,19 @@ button:hover{border-color:#9ca3af}button.on{background:var(--acc);color:#fff;bor
 .kpi table{width:100%;border-collapse:collapse;margin-top:4px;font-size:12px}
 .kpi td{padding:1px 0;color:var(--mut)}.kpi td:last-child{text-align:right;color:var(--fg);font-variant-numeric:tabular-nums}
 .up{color:#087f5b}.dn{color:#c92a2a}
-.wrap{display:flex;gap:12px;padding:12px;align-items:flex-start}
+.wrap{padding:12px}
 aside{width:210px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;position:sticky;top:12px}
 aside h3{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin:0 0 8px}
 label.tk{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px}
 .dot{width:10px;height:10px;border-radius:2px}
-main{flex:1;display:grid;gap:12px}
+main{display:grid;gap:12px}
 .panel{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
 .ph{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
 .vals{display:flex;gap:12px;font-size:12px;margin-left:auto}
 .vals b{font-variant-numeric:tabular-nums}
 .chart{height:290px}
 .note{font-size:11px;color:var(--mut);line-height:1.5}
-@media(max-width:1100px){.wrap{flex-direction:column}aside{width:100%;position:static}}
+
 
 
 .ftab{margin:0 0 16px;background:#fff;border:1px solid #e9ecef;border-radius:8px;overflow-x:auto}
@@ -50,7 +50,18 @@ main{flex:1;display:grid;gap:12px}
 .ftab .pd{color:#2f9e44;font-weight:600;cursor:help}
 .ftab .ftn{padding:8px 10px;font-size:11px;color:#868e96;border-top:1px solid #f1f3f5}
 
-#fcw{padding:12px 12px 0}#fcw h2{font-size:14px;margin:0 0 8px;font-weight:650}#fcst{margin:0}
+#val{padding:12px 12px 0}#val .sch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 8px}#val h2{font-size:14px;margin:0;font-weight:650}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:9px}.chips>span.l{font-size:12px;color:var(--mut);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border:1px solid var(--bd);border-radius:14px;font-size:12.5px;background:#fff;cursor:pointer;user-select:none}
+.chip:hover{border-color:#9ca3af}.chip.off{opacity:.5;background:#f8f9fa}.chip.off .dot{background:#ced4da!important}
+.chip.all{color:var(--acc);border-style:dashed}
+.ftab tbody td.cg{background:#e8f5eb}.ftab tbody td.cr{background:#fcebeb}
+.ftab tbody tr:hover td.cg{background:#dbefe0}.ftab tbody tr:hover td.cr{background:#f8dede}
+.ftab tbody tr.md td{background:#f8f9fa;font-weight:600;border-top:1px solid #ced4da;color:#343a40}
+.ftab tbody tr.md:hover td{background:#f1f3f5}.ftab tbody tr.md td.nm b{font-size:12.5px}
+#meth{margin:0 12px 16px;background:#fff;border:1px solid var(--bd);border-radius:8px;padding:10px 14px}
+#meth summary{cursor:pointer;font-weight:650;font-size:14px}#meth .note{margin-top:8px;columns:2 420px;column-gap:28px}
+#meth h4{margin:10px 0 2px;font-size:12px;color:#343a40;break-after:avoid}#meth p{margin:0 0 6px}
 #fcst .neg{color:#c92a2a}#fcst .pos{color:#2f9e44}
 #scw{padding:0 12px}
 #scw .sch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 8px}
@@ -69,9 +80,11 @@ main{flex:1;display:grid;gap:12px}
 <div class="grp"><label style="font-size:13px"><input type="checkbox" id="norm" checked> ребазировать индексы к 100</label>
 <label style="font-size:13px;margin-left:8px"><input type="checkbox" id="full"> от начала истории</label></div>
 <span style="margin-left:auto;font-size:12px;color:var(--mut)" id="upd"></span></div>
+<div class="chips" id="tks"><span class="l">Банки</span></div>
 <div class="kpis" id="kpis"></div>
 </header>
-<div id="sect" class="ftab"></div>
+<div id="val"><div class="sch"><h2>Оценка и прогнозы</h2><span class="grp" id="vtabs"><button class="on" data-t="sect">Мультипликаторы</button><button data-t="fcst">Прогнозы</button></span></div>
+<div id="sect" class="ftab"></div><div id="fcst" class="ftab" style="display:none"></div></div>
 <div id="scw">
 <div class="sch"><h2>Сравнительная оценка</h2>
 <div class="grp"><span>Прогнозный год</span><span id="scy"></span></div>
@@ -80,17 +93,14 @@ main{flex:1;display:grid;gap:12px}
 <div class="panel"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h4>P/E и рост чистой прибыли</h4><div class="grp" style="margin-left:auto"><span>Рост</span><span id="scgm"></span></div></div><div class="sub" id="sc1s"></div><div class="schart" id="sc1"></div></div>
 <div class="panel"><h4>P/B и рентабельность капитала (ROE)</h4><div class="sub" id="sc2s"></div><div class="schart" id="sc2"></div></div>
 </div>
-<div class="note" style="margin-top:6px"><b>P/E и рост прибыли:</b> по умолчанию рост — среднегодовой темп (CAGR) чистой прибыли за весь прогнозный горизонт: сглаживает эффект низкой или высокой базы отдельного года; переключатель «за выбранный год» возвращает рост год к году. Используется рост чистой прибыли, а не прибыли на акцию: у банков с изменением числа акций (Т-Технологии, ВТБ) эти показатели расходятся. Пунктирные линии — медианы по банкам, отмеченным в списке слева. Зелёный квадрант — дешевле медианы при росте прибыли выше медианы; красный — дороже медианы при росте ниже.<br><b>P/B и ROE:</b> сплошная линия — регрессия ROE на P/B по отмеченным банкам, то есть уровень рентабельности, который рынок в среднем «закладывает» в данный P/B. Банк выше линии (зелёная зона) — дешевле, чем следует из его ROE; ниже (красная зона) — дороже. Отклонение в пределах ±1 п.п. от линии не выделяется: при семи банках и прогнозных данных это в пределах погрешности. Медианы показаны светлым пунктиром как ориентир.<br>P/E и P/B — форвардные к текущей цене, прогнозы прибыли и капитала те же, что в таблице выше.</div>
+<div class="note" style="margin-top:6px"><b>P/E и рост прибыли:</b> по умолчанию рост — среднегодовой темп (CAGR) чистой прибыли за весь прогнозный горизонт: сглаживает эффект низкой или высокой базы отдельного года; переключатель «за выбранный год» возвращает рост год к году. Используется рост чистой прибыли, а не прибыли на акцию: у банков с изменением числа акций (Т-Технологии, ВТБ) эти показатели расходятся. Пунктирные линии — медианы по банкам, выбранным в шапке. Зелёный квадрант — дешевле медианы при росте прибыли выше медианы; красный — дороже медианы при росте ниже.<br><b>P/B и ROE:</b> сплошная линия — регрессия ROE на P/B по выбранным банкам, то есть уровень рентабельности, который рынок в среднем «закладывает» в данный P/B. Банк выше линии (зелёная зона) — дешевле, чем следует из его ROE; ниже (красная зона) — дороже. Отклонение в пределах ±1 п.п. от линии не выделяется: при семи банках и прогнозных данных это в пределах погрешности. Медианы показаны светлым пунктиром как ориентир.<br>P/E и P/B — форвардные к текущей цене, прогнозы прибыли и капитала те же, что в таблице выше.</div>
 </div>
-<div id="fcw"><h2>Прогнозы банков</h2><div id="fcst" class="ftab"></div></div>
 <div class="wrap">
-<aside><h3>Компании</h3><div id="tks"></div>
-<h3 style="margin-top:16px">Методика</h3>
-<div class="note">Мультипликаторы строятся point-in-time: отчётность применяется с фактической даты публикации.<br><br>
-ROE (LTM) = прибыль за 4 квартала / средний капитал за 4 квартала.<br>
-ROE (квартал) — значение из отчёта банка.<br><br>
-ДОМ.РФ: мультипликаторы с 20.11.2025 (IPO).<br><br>Total return = цена + реинвестированные дивиденды (до налога). Индекс TR ребазируется к 100 на начало выбранного периода — сравнивайте банки на любом окне.<br><br>ВТБ: история цены до обратного сплита 5000:1 (15.07.2024) приведена к текущему номиналу. Т: сплит 1:10 (17.04.2026).<br><br>Пунктир на панели Н20.0: серый — база 8%, оранжевая лесенка — минимум для СЗКО с учётом восстанавливаемых надбавок ЦБ (8,5% в 2024 → 9,25% в 2025 → 10,0% в 2026 → 10,75% в 2027 → 12,0% с 2028).</div></aside>
 <main id="panels"></main></div>
+<details id="meth"><summary>Методика и примечания</summary><div class="note"><h4>Методика</h4><p>Мультипликаторы строятся point-in-time: отчётность применяется с фактической даты публикации.</p><p>
+ROE (LTM) = прибыль за 4 квартала / средний капитал за 4 квартала.<br>
+ROE (квартал) — значение из отчёта банка.</p><p>
+ДОМ.РФ: мультипликаторы с 20.11.2025 (IPO).</p><p>Total return = цена + реинвестированные дивиденды (до налога). Индекс TR ребазируется к 100 на начало выбранного периода — сравнивайте банки на любом окне.</p><p>ВТБ: история цены до обратного сплита 5000:1 (15.07.2024) приведена к текущему номиналу. Т: сплит 1:10 (17.04.2026).</p><p>Пунктир на панели Н20.0: серый — база 8%, оранжевая лесенка — минимум для СЗКО с учётом восстанавливаемых надбавок ЦБ (8,5% в 2024 → 9,25% в 2025 → 10,0% в 2026 → 10,75% в 2027 → 12,0% с 2028).</p><div id="bnotes"></div></div></details>
 <script>
 (async()=>{
   try{
@@ -101,9 +111,20 @@ ROE (квартал) — значение из отчёта банка.<br><br>
 let panels=['tr_index','pb_ltm','roe_ltm','nim_q'],nP=4,range=null;
 const mById=id=>M.find(m=>m.id===id);
 const fmt=(v,u)=>v==null?'—':u==='x'?v.toFixed(2)+'x':u==='%'?v.toFixed(1)+'%':(Math.abs(v)>=1000?v.toLocaleString('ru-RU',{maximumFractionDigits:0}):v.toFixed(1));
+// русский формат чисел и дат (карточки в шапке не трогаем — у них свой fmt)
+const nf=(v,d)=>v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmtR=(v,u)=>v==null?'—':u==='x'?nf(v,2)+'x':u==='%'?nf(v,1)+'%':(Math.abs(v)>=1000?nf(v,0):nf(v,1));
+const fd=r=>r?String(r).slice(0,10).split('-').reverse().join('.'):'';
+const dnum=v=>String(v).replace('.',',');
+Plotly.register({moduleType:'locale',name:'ru',dictionary:{},format:{
+ days:['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'],shortDays:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
+ months:['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+ shortMonths:['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'],date:'%d.%m.%Y',decimal:',',thousands:' '}});
+const med=a=>{const s=[...a].filter(v=>v!=null&&isFinite(v)).sort((p,q)=>p-q),n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):null};
 document.getElementById('upd').textContent='обновлено '+D.updated;
 const K=document.getElementById('kpis');
-T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div');d.className='kpi';d.style.borderLeftColor=m.color;
+const cardEl={};
+T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div');d.className='kpi';d.style.borderLeftColor=m.color;cardEl[t]=d;
  d.innerHTML=`<div class="n">${m.name} <span style="color:var(--mut);font-weight:400">${t}</span></div>
  <div class="p">${fmt(L.close,'abs')} ₽ <span style="font-size:13px" class="${L.chg>=0?'up':'dn'}">${L.chg>=0?'+':''}${L.chg}%</span></div>
  <table><tr><td>Кап-ция, млрд ₽</td><td>${fmt(L.mcap,'abs')}</td></tr>
@@ -114,12 +135,24 @@ T.forEach(t=>{const L=D.last[t],m=D.meta[t];const d=document.createElement('div'
  <tr><td><b style="color:var(--fg)">Total return 3М · 1Г</b></td><td><b class="${L.r3m_tr>=0?'up':'dn'}">${L.r3m_tr>=0?'+':''}${L.r3m_tr}%</b> · <b class="${L.r1y_tr>=0?'up':'dn'}">${L.r1y_tr>=0?'+':''}${L.r1y_tr}%</b></td></tr>
  <tr><td>Дивиденд LTM · дох-сть</td><td>${L.div_ltm} ₽ · ${L.div_yield}%</td></tr>
  <tr><td>Отчётность</td><td>${L.period}</td></tr></table>`;K.appendChild(d)});
-const tk=document.getElementById('tks');
-T.forEach(t=>{const l=document.createElement('label');l.className='tk';
- l.innerHTML=`<input type="checkbox" checked><span class="dot" style="background:${D.meta[t].color}"></span>${D.meta[t].name}`;
- l.querySelector('input').onchange=e=>{e.target.checked?sel.add(t):sel.delete(t);draw();scat()};tk.appendChild(l)});
+// фильтр банков: действует на карточки, таблицы, графики оценки и панели
+const tk=document.getElementById('tks'),chipEl={};
+function applySel(){T.forEach(t=>{chipEl[t].classList.toggle('off',!sel.has(t));cardEl[t].style.display=sel.has(t)?'':'none'});
+ allChip.textContent=sel.size===T.length?'снять все':'выбрать все';
+ sectTable();fcTable();scat();draw()}
+T.forEach(t=>{const c=document.createElement('span');c.className='chip';chipEl[t]=c;
+ c.innerHTML=`<span class="dot" style="background:${D.meta[t].color}"></span>${D.meta[t].name}`;
+ c.onclick=()=>{sel.has(t)?sel.delete(t):sel.add(t);applySel()};tk.appendChild(c)});
+const allChip=document.createElement('span');allChip.className='chip all';allChip.textContent='снять все';
+allChip.onclick=()=>{if(sel.size===T.length)sel.clear();else T.forEach(t=>sel.add(t));applySel()};tk.appendChild(allChip);
+// примечания по банкам
+document.getElementById('bnotes').innerHTML=T.filter(t=>D.notes&&D.notes[t]).map(t=>'<h4>'+D.meta[t].name+'</h4><p>'+D.notes[t]+'</p>').join('');
+// вкладки «Мультипликаторы / Прогнозы»
+document.querySelectorAll('#vtabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#vtabs button').forEach(x=>x.classList.toggle('on',x===b));
+ ['sect','fcst'].forEach(id=>document.getElementById(id).style.display=id===b.dataset.t?'':'none')});
 const P={'1Г':365,'3Г':1095,'5Л':1825,'Все':null};
-Object.keys(P).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;if(k==='Все')b.classList.add('on');
+const DEF_P='3Г';range=[new Date(Date.now()-P[DEF_P]*864e5).toISOString().slice(0,10),'2100-01-01'];
+Object.keys(P).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;if(k===DEF_P)b.classList.add('on');
  b.onclick=()=>{range=P[k]?[new Date(Date.now()-P[k]*864e5).toISOString().slice(0,10),'2100-01-01']:null;
  document.querySelectorAll('#presets button').forEach(x=>x.classList.remove('on'));b.classList.add('on');draw()};
  document.getElementById('presets').appendChild(b)});
@@ -133,19 +166,38 @@ function build(){const c=document.getElementById('panels');c.innerHTML='';
   d.innerHTML=`<div class="ph"><select>${M.map(m=>`<option value="${m.id}"${panels[i]===m.id?' selected':''}>${m.label}</option>`).join('')}</select><div class="vals" id="v${i}"></div></div><div class="chart" id="c${i}"></div>`;
   d.querySelector('select').onchange=e=>{panels[i]=e.target.value;draw()};c.appendChild(d)}
  draw()}
+const GAP_D=183; // пропуск данных длиннее двух кварталов — линия разрывается
+const dayN=d=>Date.parse(d)/864e5;
+// «чистые» деления логарифмической оси
+function logTicks(lo,hi,suf){
+ const span=Math.log10(hi/lo);
+ const sets=[[1],[1,2,5],[1,1.5,2,3,5,7],[1,1.2,1.5,2,2.5,3,4,5,6,7,8]];
+ let st=span>3?0:span>1.2?1:span>.45?2:3,vals=[];
+ for(;st<sets.length;st++){vals=[];
+  for(let k=Math.floor(Math.log10(lo))-1;k<=Math.ceil(Math.log10(hi))+1;k++)sets[st].forEach(m=>{const v=+(m*Math.pow(10,k)).toPrecision(6);if(v>=lo*.97&&v<=hi*1.03)vals.push(v)});
+  if(vals.length>=4)break}
+ const dec=v=>v>=100?0:v>=10?(Number.isInteger(v)?0:1):v>=1?(Number.isInteger(v)?0:1):2;
+ return {tickmode:'array',tickvals:vals,ticktext:vals.map(v=>v.toLocaleString('ru-RU',{maximumFractionDigits:dec(v)})+suf)}}
 function draw(){const nzAll=norm.checked,rebFull=full.checked;
- for(let i=0;i<nP;i++){const mt=mById(panels[i]),tr=[];let vv='';const nz=nzAll&&!!mt.reb;
+ for(let i=0;i<nP;i++){const mt=mById(panels[i]),tr=[],mk=[];let vv='';const nz=nzAll&&!!mt.reb;
   T.filter(t=>sel.has(t)).forEach(t=>{const s=D.meta[t].series[mt.id];if(!s)return;
    let x=s.x,y=s.y;
    if(range){const f=x.map((d,j)=>[d,y[j]]).filter(p=>p[0]>=range[0]);x=f.map(p=>p[0]);y=f.map(p=>p[1])}
    if(!x.length)return;
    const raw=y[y.length-1];
    if(nz){const b=(rebFull&&mt.reb)?s.y[0]:y[0];y=y.map(v=>v/b*100)}
-   tr.push({x,y,name:D.meta[t].name,type:'scatter',mode:'lines',line:{color:D.meta[t].color,width:1.7},
+   // квартальные (кусочно-постоянные) ряды: отметки на датах смены значения = дата отчёта
+   let nCh=0;for(let j=1;j<y.length;j++)if(y[j]!==y[j-1])nCh++;
+   if(!nz&&y.length>30&&nCh/y.length<.05){const mx=[],my=[];for(let j=1;j<y.length;j++)if(y[j]!==y[j-1]&&dayN(x[j])-dayN(x[j-1])<=GAP_D){mx.push(x[j]);my.push(y[j])}
+    if(mx.length)mk.push({x:mx,y:my,mode:'markers',type:'scatter',marker:{color:D.meta[t].color,size:5,line:{color:'#fff',width:1}},hoverinfo:'skip',showlegend:false})}
+   // разрыв линии на пропусках
+   const gx=[],gy=[];for(let j=0;j<x.length;j++){if(j&&dayN(x[j])-dayN(x[j-1])>GAP_D){gx.push(x[j]);gy.push(null)}gx.push(x[j]);gy.push(y[j])}
+   tr.push({x:gx,y:gy,name:D.meta[t].name,type:'scatter',mode:'lines',connectgaps:false,line:{color:D.meta[t].color,width:1.7},
     hovertemplate:'<b>'+D.meta[t].name+'</b>: %{y:.2f}<extra></extra>'});
-   vv+=`<span style="color:${D.meta[t].color}">${D.meta[t].name} <b>${fmt(raw,mt.unit)}</b></span>`;
-   if(mean.checked){const a=y.reduce((p,c)=>p+c,0)/y.length;
+   vv+=`<span style="color:${D.meta[t].color}">${D.meta[t].name} <b>${fmtR(raw,mt.unit)}</b></span>`;
+   if(mean.checked){const yy=y.filter(v=>v!=null),a=yy.reduce((p,c)=>p+c,0)/yy.length;
     tr.push({x:[x[0],x[x.length-1]],y:[a,a],mode:'lines',line:{color:D.meta[t].color,width:1,dash:'dot'},showlegend:false,hoverinfo:'skip'})}});
+  tr.push(...mk);
   document.getElementById('v'+i).innerHTML=vv;
   if(!nz&&mt.step&&D.thr_steps&&D.thr_steps[mt.id]){const st=D.thr_steps[mt.id];
    let sx=st.x,sy=st.y;
@@ -153,77 +205,83 @@ function draw(){const nzAll=norm.checked,rebFull=full.checked;
     if(keep.length){sx=keep.map(j=>st.x[j]);sy=keep.map(j=>st.y[j]);sx[0]=range[0]>sx[0]?range[0]:sx[0]}}
    tr.push({x:sx,y:sy,mode:'lines',line:{color:st.color,width:1.4,dash:'dash',shape:'hv'},
     name:st.label,hovertemplate:st.label+': %{y:.2f}%<extra></extra>',showlegend:false})}
-  const neg=tr.some(t=>t.y.some(v=>v<=0)),lg=(mt.scale==='log'&&!neg&&!nz);
+  const allY=tr.flatMap(t=>t.y).filter(v=>v!=null&&isFinite(v));
+  const neg=allY.some(v=>v<=0),lg=(mt.scale==='log'&&!neg&&allY.length>0);
+  const suf=nz?'':(mt.unit==='%'?'%':(mt.unit==='x'?'x':''));
+  const yax={side:'right',type:lg?'log':'linear',gridcolor:'#f1f3f5',ticksuffix:lg?'':suf,zeroline:false};
+  if(lg)Object.assign(yax,logTicks(Math.min(...allY),Math.max(...allY),suf));
   const shp=[],ann=[];
   if(!nz&&mt.thr){mt.thr.forEach(t=>{shp.push({type:'line',xref:'paper',x0:0,x1:1,yref:'y',y0:t[0],y1:t[0],
     line:{color:t[2],width:1,dash:'dash'}});
    ann.push({xref:'paper',x:0.01,y:t[0],yref:'y',text:t[1],showarrow:false,yanchor:'bottom',
     font:{size:9,color:t[2]},bgcolor:'rgba(255,255,255,.75)'})})}
-  Plotly.react('c'+i,tr,{margin:{l:6,r:62,t:6,b:26},showlegend:false,hovermode:'x unified',
-   xaxis:{gridcolor:'#f1f3f5',showline:true,linecolor:'#dee2e6'},
-   yaxis:{side:'right',type:lg?'log':'linear',gridcolor:'#f1f3f5',ticksuffix:nz?'':(mt.unit==='%'?'%':(mt.unit==='x'?'x':'')),zeroline:false},
+  Plotly.react('c'+i,tr,{margin:{l:6,r:62,t:6,b:26},showlegend:false,hovermode:'x unified',separators:', ',
+   xaxis:{gridcolor:'#f1f3f5',showline:true,linecolor:'#dee2e6',hoverformat:'%d.%m.%Y'},
+   yaxis:yax,
    plot_bgcolor:'#fff',paper_bgcolor:'#fff',shapes:shp,annotations:ann,font:{family:'-apple-system,Segoe UI,Roboto,Arial',size:11}},
-   {displayModeBar:false,responsive:true})}}
+   {displayModeBar:false,responsive:true,locale:'ru'})}}
+
+// цвет ячейки относительно медианы: dir=-1 — меньше лучше (мультипликаторы), +1 — больше лучше
+const cmpCls=(v,m,dir)=>v==null||m==null||v===m?'':((v-m)*dir>0?'cg':'cr');
+function tblHead(blocks,ys,ysuf){let h='<table><colgroup><col class="cnm">';blocks.forEach(()=>ys.forEach(()=>h+='<col class="cy">'));
+ h+='</colgroup><thead><tr><th class="nm" rowspan="2">Компания</th>';
+ blocks.forEach(b=>h+='<th class="g bl'+(b.sh?' sh':'')+'" colspan="'+ys.length+'">'+b.t+'</th>');
+ h+='</tr><tr>';blocks.forEach(b=>ys.forEach((y,j)=>h+='<th class="y'+(j===0?' bl':'')+(b.sh?' sh':'')+'">'+y+ysuf+'</th>'));
+ return h+'</tr></thead><tbody>'}
+// общая отрисовка: строки по выбранным банкам + строка медианы
+function tblBody(blocks,ys,ord){let h='';
+ const M={};blocks.forEach((b,bi)=>ys.forEach(y=>{M[bi+'_'+y]=b.dir!=null?med(ord.map(t=>b.v(t,y))):null}));
+ ord.forEach(t=>{h+='<tr><td class="nm"><b>'+D.meta[t].name+'</b><span>'+t+'</span></td>';
+  blocks.forEach((b,bi)=>ys.forEach((y,j)=>{const v=b.v(t,y),cc=b.dir!=null?cmpCls(v,M[bi+'_'+y],b.dir):'';
+   h+='<td class="'+[(j===0?'bl':''),(b.sh?'sh':''),cc].filter(Boolean).join(' ')+'">'+b.f(v,t,y)+'</td>'}));h+='</tr>'});
+ if(ord.length>1){h+='<tr class="md"><td class="nm"><b>Медиана</b><span>по '+ord.length+' банкам</span></td>';
+  blocks.forEach((b,bi)=>ys.forEach((y,j)=>{const m=M[bi+'_'+y];h+='<td class="'+[(j===0?'bl':''),(b.sh?'sh':'')].filter(Boolean).join(' ')+'">'+(m==null?'—':b.fm(m))+'</td>'}))
+  h+='</tr>'}
+ return h+'</tbody></table>'}
+const selOrd=ord=>ord.filter(t=>sel.has(t));
+const emptyMsg='<div class="ftn">Не выбрано ни одного банка</div>';
 
 function sectTable(){
- const tb=D.table,ys=tb.years,ord=tb.order;
- const blocks=[['pe','P/E','x',1],['pb','P/B','x',0],['dy','Див. доходность','%',1]];
- let h='<table><colgroup><col class="cnm">';
- blocks.forEach(()=>ys.forEach(()=>h+='<col class="cy">'));
- h+='</colgroup><thead><tr><th class="nm" rowspan="2">Компания</th>';
- blocks.forEach(b=>h+='<th class="g bl'+(b[3]?' sh':'')+'" colspan="'+ys.length+'">'+b[1]+'</th>');
- h+='</tr><tr>';
- blocks.forEach(b=>ys.forEach((y,j)=>h+='<th class="y'+(j===0?' bl':'')+(b[3]?' sh':'')+'">'+y+'</th>'));
- h+='</tr></thead><tbody>';
- ord.forEach(t=>{
-  h+='<tr><td class="nm"><b>'+D.meta[t].name+'</b><span>'+t+'</span></td>';
-  blocks.forEach(b=>ys.forEach((y,j)=>{
-   const c=tb.rows[t][y]||{},v=c[b[0]];
-   let s='—';
-   if(v!=null){s=(b[2]==='%')?v.toFixed(1)+'%':v.toFixed(2)}
-   let ttl='';
-   if(b[0]==='dy'&&c.payments&&c.payments.length){
-    const fd=r=>r.split('-').reverse().join('.');
-    const tip=c.payments.map(p=>p.done?('● '+p.dps+' ₽ — отсечка '+fd(p.rec_date)+', цена '+p.px_ref+' ₽'):('○ '+p.dps+' ₽ — объявлен, отсечка '+fd(p.rec_date)+', к текущей цене')).join('&#10;');
-    const mk=(c.payments.some(p=>p.done)?' ●':'')+(c.payments.some(p=>!p.done)?' ○':'');
-    s='<span class="pd" title="'+tip+'">'+s+mk+'</span>'}
-   else if(b[0]==='dy'&&c.paid){s='<span class="pd" title="Выплачено '+c.dps+' ₽, отсечка '+c.rec_date+', цена '+c.px_ref+' ₽">'+s+' ●</span>'}
-   h+='<td class="'+(j===0?'bl ':'')+(b[3]?'sh':'')+'">'+s+'</td>'}));
-  h+='</tr>'});
- h+='</tbody></table><div class="ftn">'+tb.note+'</div>';
- document.getElementById('sect').innerHTML=h}
+ const tb=D.table,ys=tb.years.map(String),ord=selOrd(tb.order),el=document.getElementById('sect');
+ if(!ord.length){el.innerHTML=emptyMsg;return}
+ const cv=k=>(t,y)=>{const c=tb.rows[t][y];return c&&c[k]!=null?c[k]:null};
+ const dyF=(v,t,y)=>{if(v==null)return '—';let s=nf(v,1)+'%';const c=tb.rows[t][y]||{};
+  if(c.payments&&c.payments.length){
+   const tip=c.payments.map(p=>p.done?('● '+dnum(p.dps)+' ₽ — отсечка '+fd(p.rec_date)+', цена '+dnum(p.px_ref)+' ₽'):('○ '+dnum(p.dps)+' ₽ — объявлен, отсечка '+fd(p.rec_date)+', к текущей цене')).join('&#10;');
+   const mk=(c.payments.some(p=>p.done)?' ●':'')+(c.payments.some(p=>!p.done)?' ○':'');
+   s='<span class="pd" title="'+tip+'">'+s+mk+'</span>'}
+  else if(c.paid){s='<span class="pd" title="Выплачено '+dnum(c.dps)+' ₽, отсечка '+fd(c.rec_date)+', цена '+dnum(c.px_ref)+' ₽">'+s+' ●</span>'}
+  return s};
+ const blocks=[
+  {t:'P/E',sh:1,v:cv('pe'),dir:-1,f:v=>v==null?'—':nf(v,2),fm:v=>nf(v,2)},
+  {t:'P/B',sh:0,v:cv('pb'),dir:-1,f:v=>v==null?'—':nf(v,2),fm:v=>nf(v,2)},
+  {t:'Див. доходность',sh:1,v:cv('dy'),dir:1,f:dyF,fm:v=>nf(v,1)+'%'}];
+ el.innerHTML=tblHead(blocks,ys,'')+tblBody(blocks,ys,ord)+'<div class="ftn">'+tb.note+
+  ' Цвет — относительно медианы по выбранным банкам: зелёный — ниже мультипликатор или выше дивидендная доходность, красный — наоборот.</div>'}
 sectTable();
 
 // ---- Прогнозы: ЧП, ROE, EPS, рост ЧП и EPS ----
 function fcTable(){
- const ys=D.table.years.map(String),ord=D.table.order,FC=D._fwd_const||{},SH=D._shares||{},XS=D.eps_shares||{};
+ const ys=D.table.years.map(String),ord=selOrd(D.table.order),el=document.getElementById('fcst'),FC=D._fwd_const||{},SH=D._shares||{},XS=D.eps_shares||{};
+ if(!ord.length){el.innerHTML=emptyMsg;return}
  const shares=(t,y)=>(XS[t]&&XS[t][y]!=null)?XS[t][y]:SH[t];
  const ni=(t,y)=>{const f=FC[t]&&FC[t][y];return f&&f.ni!=null?f.ni:null};
- const ni0=t=>{const n=ni(t,ys[0]),g=D.table.rows[t][ys[0]]&&D.table.rows[t][ys[0]].g;return n!=null&&g!=null?n/(1+g/100):null};
- const eps=(t,y)=>{const n=y===String(+ys[0]-1)?ni0(t):ni(t,y),s=shares(t,y);return n!=null&&s?n*1e9/s:null};
+ const eps=(t,y)=>{const n=ni(t,y),s=shares(t,y);return n!=null&&s?n*1e9/s:null};
  const prevY=y=>String(+y-1);
- const nf=(v,d)=>v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d});
- const pc=v=>'<span class="'+(v<0?'neg':'')+'">'+(v>0?'+':'')+nf(v,1)+'%</span>';
+ const row=(t,y)=>D.table.rows[t][y]||{};
+ const pc=v=>v==null?'—':'<span class="'+(v<0?'neg':'')+'">'+(v>0?'+':'')+nf(v,1)+'%</span>';
  const blocks=[
-  ['Чистая прибыль, млрд ₽',(t,y)=>{const v=ni(t,y);return v==null?'—':nf(v,1)},0],
-  ['ROE, %',(t,y)=>{const c=D.table.rows[t][y];return c&&c.roe!=null?nf(c.roe,1)+'%':'—'},1],
-  ['EPS, ₽',(t,y)=>{const v=eps(t,y);return v==null?'—':nf(v,v<10?2:1)},0],
-  ['Рост чистой прибыли',(t,y)=>{const c=D.table.rows[t][y];return c&&c.g!=null?pc(c.g):'—'},1],
-  ['Рост EPS',(t,y)=>{const c=D.table.rows[t][y],s1=shares(t,y),s0=shares(t,prevY(y));return c&&c.g!=null&&s1&&s0?pc(((1+c.g/100)*s0/s1-1)*100):'—'},0]];
- let h='<table><colgroup><col class="cnm">';blocks.forEach(()=>ys.forEach(()=>h+='<col class="cy">'));
- h+='</colgroup><thead><tr><th class="nm" rowspan="2">Компания</th>';
- blocks.forEach(b=>h+='<th class="g bl'+(b[2]?' sh':'')+'" colspan="'+ys.length+'">'+b[0]+'</th>');
- h+='</tr><tr>';blocks.forEach(b=>ys.forEach((y,j)=>h+='<th class="y'+(j===0?' bl':'')+(b[2]?' sh':'')+'">'+y+'П</th>'));
- h+='</tr></thead><tbody>';
- ord.forEach(t=>{h+='<tr><td class="nm"><b>'+D.meta[t].name+'</b><span>'+t+'</span></td>';
-  blocks.forEach(b=>ys.forEach((y,j)=>h+='<td class="'+(j===0?'bl ':'')+(b[2]?'sh':'')+'">'+b[1](t,y)+'</td>'));h+='</tr>'});
- h+='</tbody></table><div class="ftn">'+(D.eps_note||'')+'</div>';
- document.getElementById('fcst').innerHTML=h}
+  {t:'Чистая прибыль, млрд ₽',sh:0,v:ni,f:v=>v==null?'—':nf(v,1)},
+  {t:'ROE, %',sh:1,v:(t,y)=>row(t,y).roe??null,dir:1,f:v=>v==null?'—':nf(v,1)+'%',fm:v=>nf(v,1)+'%'},
+  {t:'EPS, ₽',sh:0,v:eps,f:v=>v==null?'—':nf(v,v<10?2:1)},
+  {t:'Рост чистой прибыли',sh:1,v:(t,y)=>row(t,y).g??null,dir:1,f:pc,fm:pc},
+  {t:'Рост EPS',sh:0,v:(t,y)=>{const g=row(t,y).g,s1=shares(t,y),s0=shares(t,prevY(y));return g!=null&&s1&&s0?((1+g/100)*s0/s1-1)*100:null},dir:1,f:pc,fm:pc}];
+ el.innerHTML=tblHead(blocks,ys,'П')+tblBody(blocks,ys,ord)+'<div class="ftn">'+(D.eps_note||'')+
+  ' Цвет — относительно медианы по выбранным банкам: зелёный — выше медианы, красный — ниже. По прибыли и EPS в рублях медиана не считается: абсолютные значения у банков разного размера несопоставимы.</div>'}
 fcTable();
 
 // ---- Сравнительная оценка: scatter с квадрантами по медианам ----
 let scYear=String(D.table.years[0]);
-const med=a=>{const s=[...a].sort((p,q)=>p-q),n=s.length;return n?(n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2):null};
 D.table.years.forEach(y=>{const b=document.createElement('button');b.textContent=y+'П';if(String(y)===scYear)b.classList.add('on');
  b.onclick=()=>{scYear=String(y);document.querySelectorAll('#scy button').forEach(x=>x.classList.remove('on'));b.classList.add('on');scat()};
  document.getElementById('scy').appendChild(b)});
@@ -241,7 +299,7 @@ const BAND=1; // нейтральная полоса вокруг линии р�
 function ols(xs,ys){const n=xs.length,ax=xs.reduce((a,b)=>a+b,0)/n,ay=ys.reduce((a,b)=>a+b,0)/n;
  let sxy=0,sxx=0,syy=0;xs.forEach((x,i)=>{sxy+=(x-ax)*(ys[i]-ay);sxx+=(x-ax)**2;syy+=(ys[i]-ay)**2});
  if(!(sxx>0))return null;const k=sxy/sxx;return {k,c:ay-k*ax,r2:syy>0?sxy*sxy/(sxx*syy):0}}
-const sg=v=>(v>=0?'+':'')+v.toFixed(1);
+const sg=v=>(v>=0?'+':'')+nf(v,1);
 // mode: 'quad' — квадранты по медианам; 'reg' — полосы относительно линии регрессии
 function scPlot(el,pts,xk,yk,xl,yl,yname,mode){
  const sub=document.getElementById(el+'s'),box=document.getElementById(el);
@@ -272,34 +330,34 @@ function scPlot(el,pts,xk,yk,xl,yl,yname,mode){
   shp.push({type:'path',xref:'x',yref:'y',layer:'below',line:{width:0},fillcolor:'rgba(201,42,42,.07)',
    path:`M${xr[0]},${L(xr[0])-BAND} L${xr[1]},${L(xr[1])-BAND} L${xr[1]},${yr[0]-1e3} L${xr[0]},${yr[0]-1e3} Z`});
   tr.push({x:xr,y:xr.map(L),mode:'lines',line:{color:'#495057',width:1.4},
-   hovertemplate:'Оценка рынком с учётом ROE<br>R² = '+R.r2.toFixed(2)+'<extra></extra>'});
+   hovertemplate:'Оценка рынком с учётом ROE<br>R² = '+nf(R.r2,2)+'<extra></extra>'});
   // медианы — тонкий ориентир без заливки
   shp.push({type:'line',xref:'x',yref:'y',x0:mx,x1:mx,y0:yr[0],y1:yr[1],line:{color:'#adb5bd',width:1,dash:'dot'}});
   shp.push({type:'line',xref:'x',yref:'y',x0:xr[0],x1:xr[1],y0:my,y1:my,line:{color:'#adb5bd',width:1,dash:'dot'}});
   ann.push(A(.01,.99,'left','top','выше линии — дешевле с учётом ROE','#2f9e44'),
    A(.99,.01,'right','bottom','ниже линии — дороже с учётом ROE','#c92a2a'));
   const rk=pts.map((p,i)=>[D.meta[p.t].name,res[i]]).sort((a,b)=>b[1]-a[1]);
-  sub.innerHTML='Линия: ROE = '+R.c.toFixed(1)+' + '+R.k.toFixed(1)+' × P/B, R² = '+R.r2.toFixed(2)+'. Отклонение от линии, п.п.: '+
+  sub.innerHTML='Линия: ROE = '+nf(R.c,1)+' + '+nf(R.k,1)+' × P/B, R² = '+nf(R.r2,2)+'. Отклонение от линии, п.п.: '+
    rk.map(r=>'<span class="'+(r[1]>BAND?'up':r[1]<-BAND?'dn':'')+'">'+r[0]+' '+sg(r[1])+'</span>').join(' · ');
  }else{
   if(sctr.checked&&R)tr.push({x:xr,y:xr.map(L),mode:'lines',line:{color:'#9ca3af',width:1.3,dash:'dot'},
-    hovertemplate:'Регрессия, R² = '+R.r2.toFixed(2)+'<extra></extra>'});
+    hovertemplate:'Регрессия, R² = '+nf(R.r2,2)+'<extra></extra>'});
   shp.push({type:'rect',xref:'x',yref:'y',x0:xr[0],x1:mx,y0:my,y1:yr[1],fillcolor:'rgba(47,158,68,.07)',line:{width:0},layer:'below'},
    {type:'rect',xref:'x',yref:'y',x0:mx,x1:xr[1],y0:yr[0],y1:my,fillcolor:'rgba(201,42,42,.06)',line:{width:0},layer:'below'},
    {type:'line',xref:'x',yref:'y',x0:mx,x1:mx,y0:yr[0],y1:yr[1],line:{color:'#6b7280',width:1,dash:'dash'}},
    {type:'line',xref:'x',yref:'y',x0:xr[0],x1:xr[1],y0:my,y1:my,line:{color:'#6b7280',width:1,dash:'dash'}});
   ann.push(A(.01,.99,'left','top','дешевле · рост выше','#2f9e44'),A(.99,.99,'right','top','дороже · рост выше','#868e96'),
    A(.01,.01,'left','bottom','дешевле · рост ниже','#868e96'),A(.99,.01,'right','bottom','дороже · рост ниже','#c92a2a'));
-  sub.textContent='Медиана: '+xl+' '+mx.toFixed(2)+'x · '+yname+' '+my.toFixed(1)+'% · банков: '+pts.length;
+  sub.textContent='Медиана: '+xl+' '+nf(mx,2)+'x · '+yname+' '+nf(my,1)+'% · банков: '+pts.length;
  }
  const mc=isReg?'#adb5bd':'#6b7280';
- ann.push({xref:'x',yref:'paper',x:mx,y:1,yanchor:'bottom',text:'медиана '+mx.toFixed(2)+'x',showarrow:false,font:{size:10,color:mc}},
-  {xref:'paper',yref:'y',x:1,y:my,xanchor:'left',yanchor:'middle',xshift:4,text:'медиана<br>'+my.toFixed(1)+'%',align:'left',showarrow:false,font:{size:10,color:mc}});
- Plotly.react(el,tr,{margin:{l:48,r:58,t:20,b:40},showlegend:false,hovermode:'closest',
+ ann.push({xref:'x',yref:'paper',x:mx,y:1,yanchor:'bottom',text:'медиана '+nf(mx,2)+'x',showarrow:false,font:{size:10,color:mc}},
+  {xref:'paper',yref:'y',x:1,y:my,xanchor:'left',yanchor:'middle',xshift:4,text:'медиана<br>'+nf(my,1)+'%',align:'left',showarrow:false,font:{size:10,color:mc}});
+ Plotly.react(el,tr,{separators:', ',margin:{l:48,r:58,t:20,b:40},showlegend:false,hovermode:'closest',
   xaxis:{range:xr,title:{text:xl+' → дороже',font:{size:11,color:'#6b7280'}},ticksuffix:'x',tickformat:'.1f',gridcolor:'#f1f3f5',zeroline:false,showline:true,linecolor:'#dee2e6'},
   yaxis:{range:yr,title:{text:yl,font:{size:11,color:'#6b7280'}},ticksuffix:'%',gridcolor:'#f1f3f5',zeroline:yr[0]<0,zerolinecolor:'#dee2e6',showline:true,linecolor:'#dee2e6'},
   plot_bgcolor:'#fff',paper_bgcolor:'#fff',shapes:shp,annotations:ann,font:{family:'-apple-system,Segoe UI,Roboto,Arial',size:11}},
-  {displayModeBar:false,responsive:true})}
+  {displayModeBar:false,responsive:true,locale:'ru'})}
 function scat(){
  const y=scYear,pts=[];
  T.filter(t=>sel.has(t)).forEach(t=>{const c=D.table.rows[t]&&D.table.rows[t][y];if(c)pts.push({t,pe:c.pe,pb:c.pb,roe:c.roe,g:scG==='cagr'?cagr(t):c.g})});
