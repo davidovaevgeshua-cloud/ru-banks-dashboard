@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import ssl
 import sys
 import time
 from datetime import datetime, timezone, timedelta
@@ -52,12 +53,22 @@ STEP_SERIES = ["roe_ltm", "roe_q", "roe_4q", "roa_q", "nim_q", "nim_4q", "cir_q"
                "assets", "loans", "deposits", "roe_adj_q", "ni_growth_yoy"]
 
 
+# С ноября 2026 iss.moex.com работает на TLS-сертификате НУЦ Минцифры
+# (Russian Trusted Root CA), которого нет в стандартных хранилищах доверия.
+# Доверяем ему только в этом скрипте и поверх системных корневых сертификатов —
+# проверка TLS не отключается.
+RU_CA = ROOT / "certs" / "russian_trusted_ca.pem"
+SSL_CTX = ssl.create_default_context()
+if RU_CA.exists():
+    SSL_CTX.load_verify_locations(cafile=str(RU_CA))
+
+
 def http_get_json(url: str, timeout: int = 20, retries: int = 3) -> dict:
     last_err: Exception | None = None
     for attempt in range(retries):
         try:
             req = Request(url, headers={"User-Agent": "imoex-dashboard/1.0"})
-            with urlopen(req, timeout=timeout) as r:
+            with urlopen(req, timeout=timeout, context=SSL_CTX) as r:
                 return json.loads(r.read())
         except (URLError, HTTPError, TimeoutError) as e:
             last_err = e
@@ -116,6 +127,32 @@ def fetch_moex_last() -> dict[str, dict]:
             upd = _get("UPDATETIME")
             systime = _get("SYSTIME")
             out[tk] = {"last": last, "prev": prev, "updatetime": upd, "systime": systime}
+    return out
+
+
+def history_closes(secid: str, frm: str) -> dict[str, float]:
+    """Официальные цены закрытия TQBR с даты frm: {YYYY-MM-DD: close}."""
+    out: dict[str, float] = {}
+    pos = 0
+    while True:
+        d = http_get_json(
+            "https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/"
+            f"securities/{secid}.json?iss.meta=off&iss.only=history,history.cursor&from={frm}&start={pos}"
+        )
+        cols = d["history"]["columns"]
+        rows = d["history"]["data"]
+        for r in rows:
+            row = dict(zip(cols, r))
+            px = row.get("LEGALCLOSEPRICE") or row.get("CLOSE")
+            if px and row.get("TRADEDATE"):
+                out[row["TRADEDATE"]] = float(px)
+        cur = d.get("history.cursor", {}).get("data") or []
+        if not cur or not rows:
+            break
+        idx, total, size = cur[0]
+        pos = idx + size
+        if pos >= total:
+            break
     return out
 
 
@@ -434,12 +471,44 @@ def main() -> int:
     migrate_bootstrap(payload)
 
     moex = fetch_moex_last()
+    # До начала торгов LAST — это цена вчерашней вечерней сессии: точку «сегодня» не пишем.
+    in_session = now_msk.hour >= 7
+
+    # Догрузка пропущенных дней официальными ценами закрытия (если запуски падали
+    # или опаздывали). Последняя сохранённая точка тоже перезаписывается официальным
+    # закрытием — до этого там могла стоять цена вечерней сессии.
+    hist: dict[str, dict[str, float]] = {}
+    for tk in DASHBOARD_TICKERS + ["BSPBP"]:
+        try:
+            if tk == "BSPBP":
+                frm = payload["meta"]["BSPB"]["series"]["close"]["x"][-1]
+            else:
+                frm = payload["meta"][tk]["series"]["close"]["x"][-1]
+            frm = (datetime.fromisoformat(frm) - timedelta(days=7)).date().isoformat()
+            hist[tk] = {k: v for k, v in history_closes(tk, frm).items() if k <= today}
+        except Exception as e:  # история не критична: обновим хотя бы текущую цену
+            print(f"WARN: history {tk}: {e}", file=sys.stderr)
+            hist[tk] = {}
+    backfilled: dict[str, list[str]] = {}
+    for tk in DASHBOARD_TICKERS:
+        last_x = payload["meta"][tk]["series"]["close"]["x"][-1]
+        for d in sorted(x for x in hist[tk] if x >= last_x):
+            px = hist[tk][d]
+            if tk == "BSPB":
+                pref = hist["BSPBP"].get(d) or px
+                payload["_shares"][tk] = (445_828_521 * px + BSPBP_SHARES * pref) / px
+            recompute_ticker(payload, tk, px, d)
+            backfilled.setdefault(tk, []).append(d)
 
     per_ticker = {}
     for tk in DASHBOARD_TICKERS:
         q = moex.get(tk)
         if not q:
             print(f"WARN: no MOEX quote for {tk}", file=sys.stderr)
+            continue
+        # Официальное закрытие за торговую дату уже есть — внутридневной ценой не перетираем
+        if today in hist.get(tk, {}) or (not in_session and today == now_msk.date().isoformat()):
+            per_ticker[tk] = {"close": payload["last"][tk]["close"], "source": "history"}
             continue
         # Для BSPB нужно скорректировать shares: обыкновенные + префы*(цена_bspbp/цена_bspb)
         # Но в payload shares уже включают эквивалент — mcap = shares_eff * close_bspb.
@@ -486,6 +555,7 @@ def main() -> int:
         "date": today,
         "finalize": bool(args.finalize),
         "tickers": per_ticker,
+        "backfilled": backfilled,
         "imoex": imoex,
     }
 

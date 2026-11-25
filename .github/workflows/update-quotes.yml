@@ -2,12 +2,19 @@ name: Update MOEX quotes
 
 on:
   schedule:
-    # Все времена — UTC. МСК = UTC+3.
-    - cron: "0 9 * * 1-5"    # 12:00 МСК
-    - cron: "0 12 * * 1-5"   # 15:00 МСК
-    - cron: "0 14 * * 1-5"   # 17:00 МСК
-    - cron: "0 16 * * 1-5"   # 19:00 МСК
-    - cron: "59 20 * * 1-5"  # 23:59 МСК (финал дня)
+    # 5 запусков по будням вокруг основной сессии MOEX (10:00–18:40 МСК).
+    # Время — UTC (МСК = UTC+3). Шаг между открытием и закрытием — 130 мин.
+    # Минуты не круглые: запуски «ровно в :00» GitHub откладывает сильнее всего.
+    - cron: "3 7 * * 1-5"     # 10:03 МСК — сразу после открытия
+    - cron: "11 9 * * 1-5"    # 12:11 МСК
+    - cron: "21 11 * * 1-5"   # 14:21 МСК
+    - cron: "31 13 * * 1-5"   # 16:31 МСК
+    - cron: "53 15 * * 1-5"   # 18:53 МСК — сразу после закрытия (аукцион закрытия до 18:50)
+  push:
+    branches: [main]
+    paths:
+      - "scripts/update_quotes.py"
+      - "certs/**"
   workflow_dispatch:
     inputs:
       finalize:
@@ -39,10 +46,10 @@ jobs:
         run: |
           FINALIZE=""
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            # Финализируем на самом позднем cron дня — 20:59 UTC.
-            HOUR_UTC=$(date -u +%H)
-            MIN_UTC=$(date -u +%M)
-            if [ "$HOUR_UTC" = "20" ]; then
+            # Финальный прогон — любой плановый запуск после закрытия основной сессии
+            # (18:50 МСК = 15:50 UTC) или ночью: GitHub может запускать cron с опозданием.
+            HM=$(date -u +%H%M)
+            if [ "$HM" -ge 1550 ] || [ "$HM" -lt 400 ]; then
               FINALIZE="--finalize"
             fi
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.finalize }}" = "true" ]; then
@@ -65,5 +72,6 @@ jobs:
           else
             MSG="chore(quotes): $(date -u +'%Y-%m-%d %H:%M UTC') ${{ steps.flag.outputs.flag }}"
             git commit -m "$MSG"
+            git pull --rebase origin main
             git push
           fi
